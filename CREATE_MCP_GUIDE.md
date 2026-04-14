@@ -58,7 +58,7 @@ Un paquete MCP bien estructurado consta de configuraciones centrales, código de
 📁 MiModuloMCP/
 ├── 📄 config.ts                 <-- (Requerido) Manifiesto y esquemas de entorno
 ├── 📄 package.json              <-- (Opcional) Define dependencias propias si se requieren
-├── 📄 SKILL.md                  <-- Sirve de System Prompt inyectable (`type: mcp`)
+├── 📄 SKILL.md                  <-- (Recomendado) Sirve de System Prompt inyectable (`type: mcp`)
 └── 📁 Plugins/
     └── 📁 {PluginName}/
         └── 📄 {PluginName}Plugin.ts  <-- Clase ejecutora que resuelve las acciones declaradas en config
@@ -142,21 +142,96 @@ export class ChatPlugin {
 
 Urano enlazará el puente dinámicamente y creará un schema oficial en formato OpenAI Functions llamado `urano_slackintegration_chat_sendmessage`.
 
+> [!NOTE]
+> **Resolución de Nombres (Urano >= 1.3.5):** El sistema ahora resuelve el nombre del módulo de forma **insensible a mayúsculas** (`case-insensitive`) escaneando el sistema de archivos. Esto significa que si tu carpeta es `SlackIntegration`, las llamadas dirigidas a `slackintegration` funcionarán correctamente.
+### Retornando Contenido Multimodal (Imágenes, Archivos)
+Gracias al Core Multimodal de Urano y el soporte de AI SDK v6, un plugin ya no está limitado a retornar solo texto `String`. Si devuelves un Array de `MessagePart`, el agente "verá" verdaderamente los componentes.
+
+```typescript
+    async executeAction(action: string, payload: any) {
+        if (action === 'capture') {
+            const rawBuffer = await miLibreriaDeCaptura();
+            
+            // Retorna un Array para saltarse el Stringify (Requiere Urano >= 1.2.5)
+            return [
+                { type: 'text', text: 'Aquí tienes la captura que solicitaste:' },
+                { type: 'image', image: rawBuffer.toString('base64'), mimeType: 'image/png' }
+            ];
+        }
+    }
+```
+> **¿Qué hace Urano con ese Array?** Para garantizar que APIs que no soportan visión en roles de herramientas (como OpenAI vía OpenRouter) no colapsen la memoria al tratar los Base64 como texto crudo, el **RuntimeLoop** interceptará tu componente `image`, dejará una mención en texto, y recreará un segundo mensaje invisible bajo el `role: "user"` justo abajo. Así el modelo lo analizará de forma 100% nativa.
+
 ---
 
-## 5. Inyectando Contexto con `SKILL.md`
+## 5. Inyectando Badges desde de tu Plugin MCP (Opcional)
+
+Si desarrollas una herramienta MCP que lanza procesos de fondo, abre sub-pestañas, u obtiene documentos extensos, tal vez desees ofrecer al usuario un clic de acceso rápido arriba de su barra de texto. Puedes inyectar un **SessionBadge** universal:
+
+```typescript
+// Desde tu archivo MyPlugin.ts
+public async apiEjecutarTarea(payload: any) {
+    const { CoreFactory } = await import('@core/CoreFactory');
+    const manager = await CoreFactory.getSessionManager();
+    const session = manager.get(payload.sessionId);
+    
+    if (session) {
+        const badges = session.metadata.badges || [];
+        // Evitar duplicados
+        if (!badges.some(b => b.id === 'mi-reporte')) {
+            badges.push({
+                id: 'mi-reporte',
+                label: 'Abrir Reporte Generado',
+                icon: '📊',
+                color: 'success', // 'default' | 'info' | 'success' | 'warning' | 'error'
+                actionRoute: '/module/MyPlugin/plugins/Report/apiAbrirReporte',
+                actionData: { reportId: '123' }
+            });
+            await manager.updateSessionMetadata(payload.sessionId, { badges });
+        }
+    }
+    
+    return { success: true };
+}
+```
+
+Urano Front pintará tu badge usando la paleta de colores indicada, y desencadenará el IPC Request a tu endpoint proporcionado de manera transparente.
+
+### Manejando la Acción en tu Plugin
+
+Para que el badge sea funcional, tu clase de Plugin debe implementar el método que definiste en `actionRoute`. Si tu ruta es `/module/MyPlugin/plugins/Report/apiAbrirReporte`, tu plugin debe tener el método `apiAbrirReporte`:
+
+```typescript
+// En src/main/Modules/MyPlugin/Plugins/Report/ReportPlugin.ts
+export class ReportPlugin extends PluginBase {
+    
+    // Este método se invoca cuando el usuario hace clic en el Badge
+    async apiAbrirReporte(payload: { reportId: string }) {
+        console.log("El usuario pidió abrir el reporte:", payload.reportId);
+        
+        // Aquí puedes lanzar procesos, abrir archivos locales, o
+        // incluso inyectar un mensaje nuevo en el chat.
+        return { success: true };
+    }
+}
+```
+
+> [!TIP]
+> **Sobre los Imports**: Nota que usamos `await import(...)` para cargar `CoreFactory`. Esto es una **buena práctica mandatoria** en Urano Desktop para evitar "Circular Dependencies" (errores de importación cíclica) ya que los plugins se cargan al inicio del sistema antes de que el Core esté 100% inicializado.
+
+---
+
+## 6. Inyectando Contexto con `SKILL.md`
 
 Las herramientas sueltas de API no son suficientes si deseas dotar al LLM de la inteligencia sobre cómo usar tu MCP, o si quieres enseñarle **políticas empresariales específicas** al utilizar el módulo.
 
-Para eso, creamos un archivo en la raíz del plugin llamado `SKILL.md`.
+---
 
-```yaml
----
-name: slack_operator
-description: Skill maestro que sabe dar soporte avanzado en Slack
-type: mcp
-tools: [urano_slackintegration_chat_sendmessage]
----
+### ¿Es mandatorio el `SKILL.md`? (Urano >= 1.3.5)
+A diferencia de versiones anteriores, **ya no es obligatorio** tener un `SKILL.md` válido para que las herramientas técnicas del módulo se registren. Si el archivo falta o está mal formado, el agente aún podrá ver y ejecutar tus acciones definidas en `config.ts`, pero carecerá de las instrucciones narrativas sobre *cómo* y *cuándo* usarlas.
+
+> [!TIP]
+> **Uso recomendado:** Siempre incluye un `SKILL.md`. Sin él, el agente puede alucinar con los parámetros o ignorar las políticas de seguridad que definas.
 
 # Funciones de Operador 
 
@@ -169,6 +244,15 @@ Tu objetivo principal es hacer reportes asíncronos rápidos y formales usando l
 
 ### ¿Por qué `type: mcp`?
 Gracias a esta etiqueta en el `frontmatter`, el **SkillRegistry** de Urano sabe que este skill **no debe listarse globalmente** en el panel universal del "Editor de Agentes", dado que de lo contrario, saturaría la experiencia de un editor humano listándole un sin fin de herramientas técnicas irrelevantes (Ej. *bases de datos postgres, conectores git*). El skill permanece escondido y disponible enteramente para rehidratarse de trasfondo siempre y cuando el Agente tenga los *Módulos MCP Autorizados* explícitos.
+
+### 🧠 El Protocolo Skill-First (Mandatorio)
+A partir de la versión 1.3.0, Urano Core impone un bloque de instrucciones `<mcp_protocol>` al Agente. Este bloque le prohíbe usar tus herramientas `urano_*` si no ha ejecutado primero `urano_read_skill`.
+
+**¿Qué significa esto para ti?**
+- Tu `SKILL.md` **siempre** será consultado antes de que el agente use tu API.
+- Debes incluir reglas de validación y ejemplos claros de JSON en el `SKILL.md`.
+- No necesitas saturar las descripciones de las herramientas en `config.ts`, ya que el "manual de instrucciones" completo reside en el skill y será leído bajo demanda.
+
 
 ---
 
@@ -189,3 +273,9 @@ Urano implementa un **Instalador de MCP Agnóstico** (`McpInstaller.ts`).
 Una vez tu módulo MCP exista en la plataforma:
 - Se lista bajo "Integraciones Externas" en el Gestor Visual.
 - Para darle permiso a un Agente a invocar tu módulo secreto, debe ir a su panel de `Configuración de Agente > MCPs (Avanzado)` y marcar la casilla autoritativa permitiendo puentes de tu integración específica. Las Tools y el System Prompt (`SKILL.md` oculto) se vincularán in-memory.
+
+### 🛡️ Desarrollo Responsable: Whitelisting
+Si tu MCP tiene acceso a recursos sensibles (archivos, procesos, red), es **obligatorio** implementar una capa de validación en tu Plugin.
+1. Define un campo en `settings` del `config.ts` (ej: `ALLOWED_APPS`).
+2. En tu `executeAction`, lee ese valor desde el `configStore`.
+3. Valida la petición contra ese valor. Si falla, retorna un error descriptivo: `"ATENCIÓN IA: El recurso solicitado está fuera de la lista blanca permitida por el usuario."`.
