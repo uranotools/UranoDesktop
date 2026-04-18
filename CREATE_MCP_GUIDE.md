@@ -102,6 +102,7 @@ export const SlackConfig = {
                     fields: [
                         { name: 'channel', type: 'required', label: 'ID Canal' },
                         { name: 'text', type: 'required', label: 'Cuerpo del mensaje' },
+                        { name: 'attachmentFolder', type: 'dir', label: 'Carpeta de Adjuntos' },
                     ]
                 }
             }
@@ -109,6 +110,15 @@ export const SlackConfig = {
     }
 };
 ```
+
+### Tipos de Campos en `fields`
+Urano Front renderiza automáticamente los formularios basándose en el atributo `type`:
+- `required`: Campo de texto obligatorio.
+- `text`: Campo de texto opcional.
+- `password`: Campo oculto (Bóveda).
+- `dir`: **(Urano >= 1.3.5)** Selector de directorios nativo de Windows.
+- `select`: Menú desplegable (requiere atributo `options: [{ label, value }]`).
+- `prompt`: Área de texto multilínea para bloques de instrucciones.
 
 > **NOTA SOBRE SEGURIDAD:** Todos los campos variables estipulados en `settings` alimentan el motor criptográfico local de Urano. Los agentes jamas ven los tokens estáticos en sus contextos.
 
@@ -279,3 +289,159 @@ Si tu MCP tiene acceso a recursos sensibles (archivos, procesos, red), es **obli
 1. Define un campo en `settings` del `config.ts` (ej: `ALLOWED_APPS`).
 2. En tu `executeAction`, lee ese valor desde el `configStore`.
 3. Valida la petición contra ese valor. Si falla, retorna un error descriptivo: `"ATENCIÓN IA: El recurso solicitado está fuera de la lista blanca permitida por el usuario."`.
+
+---
+
+## 7. Creando MCPs con Conciencia de Audio (Audio-Aware Plugins)
+
+Urano incluye un **Audio Engine nativo** (`useAudioEngine`) que permite capturar voz del usuario sin que tu MCP tenga que manejar micrófonos directamente. Los chunks de voz ya transcritos llegan a tu plugin como texto plano.
+
+### Patrón: Plugin que procesa chunks de voz en tiempo real
+
+Ideal para MCPs como presentaciones en vivo, asistentes de dictado, o comandos de voz.
+
+```typescript
+// Plugins/Presentation/PresentationPlugin.ts
+export class PresentationPlugin {
+    private currentStageIndex = 0
+    private stages: { keywords: string[]; uiSpec: any }[] = []
+
+    // Acción estándar: carga el guión
+    async apiLoadpresentation(payload: { stages: any[] }) {
+        this.stages = payload.stages
+        this.currentStageIndex = 0
+        return { loaded: true, totalStages: this.stages.length }
+    }
+
+    // Acción de alta frecuencia: recibe chunks de voz directamente del AudioEngine
+    // Esta acción NO invoca el LLM en cada llamada — es pura lógica de Plugin.
+    async apiProcessvoicechunk(payload: { chunk: string }) {
+        const current = this.stages[this.currentStageIndex]
+        if (!current) return { action: 'none' }
+
+        // Verificar si el chunk contiene palabras clave de la etapa actual
+        const match = current.keywords.some(kw =>
+            payload.chunk.toLowerCase().includes(kw.toLowerCase())
+        )
+
+        if (match) {
+            this.currentStageIndex++
+            return { action: 'advance', newStage: this.currentStageIndex }
+        }
+
+        return { action: 'none' }
+    }
+}
+```
+
+### Cómo el Frontend llama tu plugin directamente (sin agente)
+
+Para latencia ultra-baja (< 600ms), el frontend puede bypasear el LLM y llamar tu plugin directo:
+
+```typescript
+// En el componente React que controla la sesión
+const handleVoiceChunk = async (text: string) => {
+    const res = await window.electronAPI.customIpcCall(
+        '/module/LivePresenter/plugins/Presentation/processvoicechunk',
+        { chunk: text }
+    )
+    if (res.action === 'advance') {
+        // Disparar generateDynamicUI en MultiverseTabs para la nueva etapa
+    }
+}
+
+// Pasarlo al AudioEngine
+audioEngine.start({
+    mode: 'chunk',
+    onChunk: handleVoiceChunk
+})
+```
+
+### Flujo Completo: Voz → Plugin → Visual
+
+```
+Micrófono
+   ↓  (Web Speech API, ~150ms)
+AudioEngine.onChunk(text)
+   ↓  (IPC directo, <10ms)
+PresentationPlugin.processVoiceChunk()
+   ↓  (lógica interna, <5ms)
+generateDynamicUI() → MultiverseTab
+   ↓  (React render, ~100ms)
+Visual actualizado
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: ~265ms (sin LLM) ✅
+```
+
+> [!TIP]
+> Reserva el LLM para generar el **contenido** de los stages al inicio (cuando cargas el guión), no para procesar cada fragmento de voz. Así obtienes la máxima inteligencia con la mínima latencia operativa.
+
+### Selección de Dispositivo de Audio por el Usuario
+
+Desde el **AgentsDashboard > Configuración de Audio**, el usuario puede elegir el micrófono que se usará. No necesitas gestionar esto en tu plugin.
+
+
+## 8. Renderizado Dinámico y el Patrón LivePresenter
+
+A partir de la versión 1.3.0, los módulos MCP pueden renderizar interfaces React complejas en el frontend utilizando el módulo **MultiverseTabs**. Esto permite que un agente no solo "hable", sino que "construya" aplicaciones en tiempo real.
+
+### Invocando un Renderizado desde un Plugin
+
+Si tu plugin necesita mostrar un dashboard, una gráfica o una presentación, debe invocar la acción `generatedynamicui` de MultiverseTabs.
+
+```typescript
+// Plugins/Visualization/VizPlugin.ts
+public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
+    const { CoreFactory } = await import('@core/CoreFactory');
+    const pluginManager = await CoreFactory.getPluginManager();
+    
+    // Invocamos el plugin de MultiverseTabs directamente
+    await pluginManager.executeAction('MultiverseTabs', 'Tabs', 'generatedynamicui', {
+        sessionId: payload.sessionId,
+        purpose: 'dashboard-analytics',
+        spec: {
+            title: "Análisis de Datos Pro",
+            component: "DynamicGrid", // Componente React registrado en UranoFront
+            props: {
+                dataset: payload.data,
+                refreshInterval: 5000
+            }
+        }
+    });
+
+    return { status: 'Rendering started in Multiverse' };
+}
+```
+
+### El Patrón de "Ejecución Híbrida" (Recomendado)
+
+Para una experiencia de usuario fluida, sigue este patrón en tus plugins:
+
+1.  **Respuesta Estática Inmediata**: Retorna un resumen en texto o un `MessagePart[]` multimodal para que el usuario sepa que la acción comenzó.
+2.  **Mejora Dinámica Asíncrona**: Dispara el `generatedynamicui` de trasfondo para abrir la pestaña interactiva.
+
+```typescript
+async executeAction(action: string, payload: any) {
+    if (action === 'analyze') {
+        // 1. Disparar UI pesada asíncronamente
+        this.apiRenderDashboard(payload); 
+
+        // 2. Retornar confirmación instantánea al Agent context
+        return "He iniciado el análisis visual en una nueva pestaña del Multiverso. Mientras se carga, puedo confirmarte que los datos preliminares muestran un crecimiento del 20%.";
+    }
+}
+```
+
+---
+
+## 9. Lista Blanca y Seguridad (FileSystem)
+
+Si tu módulo maneja archivos locales, es vital que el agente sepa qué rutas tiene permitidas de antemano.
+
+1.  **Acción `listAllowed`**: Implementa siempre una acción que devuelva el contenido de tus `settings` de rutas autorizadas.
+2.  **Protocolo en `SKILL.md`**: Instruye al agente para que **siempre** ejecute `listAllowed` antes de intentar leer o escribir archivos. Esto evita errores de permisos (`ENOENT`) y mejora la confianza del modelo.
+
+```markdown
+# Instrucciones de FileSystem
+Antes de realizar cualquier operación de archivos, DEBES llamar a `urano_filesystem_localfiles_listallowed` para conocer las rutas seguras autorizadas por el usuario. No intentes acceder a rutas fuera de esta lista.
+```
