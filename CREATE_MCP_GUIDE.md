@@ -670,8 +670,8 @@ export default class SystemTerminal extends PluginBase {
 El **RuntimeLoop** ejecuta todas las herramientas generadas en un mismo turno usando `Promise.all()`. Esto significa que si el agente emite tres tool calls en un mismo paso:
 
 ```
-whale_feed()  ─┐
-whale_stats() ─┼─ Promise.all → disparo simultáneo → 429 Rate Limit
+user_feed()  ─┐
+user_stats() ─┼─ Promise.all → disparo simultáneo → 429 Rate Limit
 search()      ─┘
 ```
 
@@ -736,7 +736,7 @@ async function miFetch(path: string, apiKey: string): Promise<any> {
 ### Cómo Funciona la Cola
 
 ```
-Promise.all dispara:       whale_feed()   whale_stats()   search()
+Promise.all dispara:       user_feed()   user_stats()   search()
                                 │               │              │
                            llaman a:        miFetch()     miFetch()     miFetch()
                                 │               │              │
@@ -758,7 +758,7 @@ Usa una cola serial cuando tu plugin integra una API externa que:
 | Condición | Ejemplo |
 |-----------|---------|
 | Tiene rate limit de escritura O lectura | Oddpool: ~1 req/s, Twitter API: 300 req/15min |
-| El agente puede llamar múltiples herramientas del mismo proveedor en un turno | `whale_feed` + `whale_stats` + `search` → todas usan Oddpool |
+| El agente puede llamar múltiples herramientas del mismo proveedor en un turno | `user_feed` + `user_stats` + `search` → todas usan Oddpool |
 | El error de rate limit no es recuperable en esa misma request | `429` sin Retry-After header |
 
 > [!TIP]
