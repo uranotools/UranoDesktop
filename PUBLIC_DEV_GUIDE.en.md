@@ -1,3 +1,7 @@
+<div align="center">
+  <p><b>Spanish Version: <a href="./PUBLIC_DEV_GUIDE.md">PUBLIC_DEV_GUIDE.md</a></b></p>
+</div>
+
 # 🚀 Publishing Guide: Urano MCP Marketplace
 
 Welcome to the **Urano Desktop** developer community. This guide is designed to teach you how to package, distribute, and publish your MCP (Model Context Protocol) plugin in the official Urano catalog so that thousands of users can install it with a single click.

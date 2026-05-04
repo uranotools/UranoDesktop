@@ -1,6 +1,10 @@
+<div align="center">
+  <p><b>Spanish Version: <a href="./CREATE_MCP_GUIDE.md">CREATE_MCP_GUIDE.md</a></b></p>
+</div>
+
 # Urano MCP - Creation and Installation Guide
 
-This technical guide is aimed at developers who want to create and integrate external **MCP (Model Context Protocol) Packages** into the Urano Agent architecture. Here you will learn everything from basic concepts to advanced configurations for exposing dynamic or static tools and defining specialized contexts (`Skills`).
+This technical guide is aimed at developers who wish to create and integrate external **MCP (Model Context Protocol) Packages** into the Urano Agent architecture. Here you will learn from basic concepts to advanced configurations for exposing dynamic or static tools and defining specialized contexts (`Skills`).
 
 ---
 
@@ -16,14 +20,14 @@ This technical guide is aimed at developers who want to create and integrate ext
 
 ## 1. Quick Start
 
-To get started immediately, this is all you need to do to create and install your first MCP called "HelloWorld":
+To get started immediately, here is all you need to do to create and install your first MCP called "HelloWorld":
 
-1. Create a local folder named `HelloWorld`.
+1. Create a local folder called `HelloWorld`.
 2. Inside that folder, create the `config.ts` file:
 ```typescript
 export const HelloWorldConfig = {
     name: "HelloWorld",
-    description: "My first test MCP module",
+    description: "My first trial MCP module",
     icon: "Rocket",
     category: "Development",
     pluginSchemas: {
@@ -44,7 +48,7 @@ export class TestsPlugin {
     }
 }
 ```
-4. Compress the contents of the folder on disk as `HelloWorld.zip`.
+4. Compress the interior of the folder on disk as `HelloWorld.zip`.
 5. Go to **Urano (Desktop or UI) > Integrations / MCP Manager**.
 6. Click on **Install MCP (.zip)**, upload your file, and that's it! Agents with permissions will automatically be able to see and use your new tool `urano_helloworld_tests_ping`.
 
@@ -52,12 +56,12 @@ export class TestsPlugin {
 
 ## 2. MCP Project Structure
 
-A well-structured MCP package consists of core configurations, execution code, and contextual documentation. When you install a ZIP in Urano, the system extracts everything to the isolated vault `~/.urano/workspace/mcp/{ModuleName}/`.
+A well-structured MCP package consists of central configurations, execution code, and contextual documentation. When you install a ZIP in Urano, the system extracts everything into the isolated vault `~/.urano/workspace/mcp/{ModuleName}/`.
 
 ```text
 📁 MyMCPModule/
 ├── 📄 config.ts                 <-- (Required) Manifest and environment schemas
-├── 📄 package.json              <-- (Optional) Defines its own dependencies if required
+├── 📄 package.json              <-- (Optional) Defines own dependencies if required
 ├── 📄 SKILL.md                  <-- (Recommended) Serves as an injectable System Prompt (`type: mcp`)
 └── 📁 Plugins/
     └── 📁 {PluginName}/
@@ -68,14 +72,14 @@ A well-structured MCP package consists of core configurations, execution code, a
 
 ## 3. The `config.ts` File (Core Manifest)
 
-Your `config.ts` is the brain of the environment. Urano reads this file to render graphical interfaces and configure the Password Vault transparently.
+Your `config.ts` is the brain of the environment. Urano reads this file to render graphical interfaces and configure the password Vault transparently.
 
 ### Advanced Anatomy
 
 ```typescript
 export const SlackConfig = {
     name: "SlackIntegration",
-    description: "Connect to Slack directly in the commercial workspace",
+    description: "Connect to Slack directly in the business workspace",
     icon: "MessageSquare",
     category: "Communications",
 
@@ -86,7 +90,7 @@ export const SlackConfig = {
     ],
 
     // 2. Native MCP Server Connectors (Optional)
-    // If your module is a wrapper for an open source MCP module:
+    // If your module is a wrapper for an open-source MCP module:
     mcpServer: {
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-slack'],
@@ -102,7 +106,7 @@ export const SlackConfig = {
                     fields: [
                         { name: 'channel', type: 'required', label: 'Channel ID' },
                         { name: 'text', type: 'required', label: 'Message body' },
-                        { name: 'attachmentFolder', type: 'dir', label: 'Attachment Folder' },
+                        { name: 'attachmentFolder', type: 'dir', label: 'Attachments Folder' },
                     ]
                 }
             }
@@ -120,13 +124,13 @@ Urano Front automatically renders forms based on the `type` attribute:
 - `select`: Dropdown menu (requires `options: [{ label, value }]` attribute).
 - `prompt`: Multi-line text area for instruction blocks.
 
-> **SECURITY NOTE:** All variable fields specified in `settings` feed into Urano's local cryptographic engine. Agents never see static tokens in their contexts.
+> **SECURITY NOTE:** All variable fields stipulated in `settings` feed Urano's local cryptographic engine. Agents never see static tokens in their contexts.
 
 ---
 
 ## 4. Adding Logic to Plugins
 
-Tools structured in `config.ts` under the `pluginSchemas` key expect a corresponding class under the `Plugins/{Name}/{Name}Plugin.ts` tree. 
+The tools structured in `config.ts` under the `pluginSchemas` key expect a counterpart class under the tree `Plugins/{Name}/{Name}Plugin.ts`. 
 
 For the previous schema (`Chat`), you would need to create `Plugins/Chat/ChatPlugin.ts`:
 
@@ -134,9 +138,9 @@ For the previous schema (`Chat`), you would need to create `Plugins/Chat/ChatPlu
 export class ChatPlugin {
     private configStore: any;
 
-    constructor(moduleConfigCollectedByUrano: any) {
+    constructor(moduleConfigCompiledByUrano: any) {
         // In this step, Urano will inject decrypted vault keys in real-time
-        this.configStore = moduleConfigCollectedByUrano; 
+        this.configStore = moduleConfigCompiledByUrano; 
     }
 
     async executeAction(action: string, payload: any) {
@@ -150,24 +154,24 @@ export class ChatPlugin {
 }
 ```
 
-Urano will dynamically link the bridge and create an official OpenAI Functions format schema called `urano_slackintegration_chat_sendmessage`.
+Urano will dynamically link the bridge and create an official schema in OpenAI Functions format called `urano_slackintegration_chat_sendmessage`.
 
 > [!NOTE]
-> **Name Resolution (Urano >= 1.3.5):** The system now resolves the module name in a **case-insensitive** manner by scanning the file system. This means if your folder is `SlackIntegration`, calls directed to `slackintegration` will work correctly.
+> **Name Resolution (Urano >= 1.3.5):** The system now resolves the module name in a **case-insensitive** manner by scanning the file system. This means that if your folder is `SlackIntegration`, calls directed to `slackintegration` will work correctly.
 ```typescript
     async executeAction(action: string, payload: any) {
         if (action === 'capture') {
             const rawBuffer = await myCaptureLibrary();
             
             // Pattern A: Mixed Multimodal Message (Urano >= 1.2.5)
-            // Useful for returning text + image explicitly.
+            // Useful for explicitly returning text + image.
             // return [
             //    { type: 'text', text: 'Here is the capture:' },
             //    { type: 'image', image: rawBuffer.toString('base64'), mimeType: 'image/png' }
             // ];
 
             // Pattern B: Vision Interception (Recommended Urano >= 1.4.0)
-            // When returning an object with base64 and mimeType, the RuntimeLoop will activate 
+            // By returning an object with base64 and mimeType, the RuntimeLoop will activate 
             // automatic interception, moving the image to a user role 
             // to avoid context bloat.
             return {
@@ -178,7 +182,7 @@ Urano will dynamically link the bridge and create an official OpenAI Functions f
         }
     }
 ```
-> **What does Urano do with these objects?** To ensure that APIs that do not support vision in tool roles (like OpenAI via OpenRouter) do not crash memory by treating Base64 as raw text, the **RuntimeLoop** will intercept your response if it contains `base64` and `mimeType`. 
+> **What does Urano do with these objects?** To ensure that APIs that do not support vision in tool roles (like OpenAI via OpenRouter) do not collapse memory by treating Base64 as raw text, the **RuntimeLoop** will intercept your response if it contains `base64` and `mimeType`. 
 > 1. It will leave a text mention in the tool log.
 > 2. It will recreate an invisible message under `role: "user"` right below with the actual image. 
 > In this way, the model receives the image 100% natively and securely.
@@ -187,36 +191,37 @@ Urano will dynamically link the bridge and create an official OpenAI Functions f
 
 ## 5. Injecting Badges from your MCP Plugin (Optional)
 
-If you develop an MCP tool that launches background processes, opens sub-tabs, or retrieves extensive documents, you may want to offer the user a quick access click above their text bar. You can inject a universal **SessionBadge**:
+If you develop an MCP tool that launches background processes, opens sub-tabs, or retrieves extensive documents, you may want to offer the user a quick-access click above their text bar. You can inject a universal **SessionBadge**:
 
 ```typescript
 // From your MyPlugin.ts file
 public async apiExecuteTask(payload: any) {
-    const { CoreFactory } = await import('@core/CoreFactory');
-    const manager = await CoreFactory.getSessionManager();
-    const session = manager.get(payload.sessionId);
-    
-    if (session) {
-        const badges = session.metadata.badges || [];
-        // Avoid duplicates
-        if (!badges.some(b => b.id === 'my-report')) {
-            badges.push({
+    // [IMPORTANT] Avoid importing @core directly in external/workspace plugins
+    // as path aliases do not resolve outside the compiled Urano environment.
+    // Instead, use the capability injected by the system in this.config._callPlugin.
+
+    await this.config._callPlugin(
+        'Core',              // Target module
+        'SessionManager',    // Or the abstraction you need
+        'updateBadge',       // Specific action
+        {
+            sessionId: payload.sessionId,
+            badge: {
                 id: 'my-report',
                 label: 'Open Generated Report',
                 icon: '📊',
-                color: 'success', // 'default' | 'info' | 'success' | 'warning' | 'error'
+                color: 'success',
                 actionRoute: '/module/MyPlugin/plugins/Report/apiOpenReport',
                 actionData: { reportId: '123' }
-            });
-            await manager.updateSessionMetadata(payload.sessionId, { badges });
+            }
         }
-    }
+    );
     
     return { success: true };
 }
 ```
 
-Urano Front will render your badge using the indicated color palette and trigger the IPC Request to your provided endpoint transparently.
+Urano Front will paint your badge using the indicated color palette and trigger the IPC Request to your provided endpoint transparently.
 
 ### Handling the Action in your Plugin
 
@@ -226,9 +231,9 @@ For the badge to be functional, your Plugin class must implement the method you 
 // In src/main/Modules/MyPlugin/Plugins/Report/ReportPlugin.ts
 export class ReportPlugin extends PluginBase {
     
-    // This method is invoked when the user clicks the Badge
+    // This method is invoked when the user clicks on the Badge
     async apiOpenReport(payload: { reportId: string }) {
-        console.log("User requested to open report:", payload.reportId);
+        console.log("The user requested to open the report:", payload.reportId);
         
         // Here you can launch processes, open local files, or
         // even inject a new message into the chat.
@@ -238,21 +243,21 @@ export class ReportPlugin extends PluginBase {
 ```
 
 > [!TIP]
-> **About Imports**: Note that we use `await import(...)` to load `CoreFactory`. This is a **mandatory best practice** in Urano Desktop to avoid "Circular Dependencies" since plugins are loaded at system startup before the Core is 100% initialized.
+> **About Imports**: Note that we use `await import(...)` to load `CoreFactory`. This is a **mandatory best practice** in Urano Desktop to avoid "Circular Dependencies" (cyclic import errors) since plugins are loaded at system startup before the Core is 100% initialized.
 
 ---
 
 ## 6. Injecting Context with `SKILL.md`
 
-Standalone API tools are not enough if you want to provide the LLM with intelligence on how to use your MCP, or if you want to teach it **specific business policies** when using the module.
+Loose API tools are not enough if you want to provide the LLM with intelligence on how to use your MCP, or if you want to teach it **specific business policies** when using the module.
 
 ---
 
 ### Is `SKILL.md` mandatory? (Urano >= 1.3.5)
-Unlike previous versions, **it is no longer mandatory** to have a valid `SKILL.md` for the module's technical tools to register. If the file is missing or malformed, the agent will still be able to see and execute your actions defined in `config.ts`, but it will lack the narrative instructions on *how* and *when* to use them.
+Unlike previous versions, it is **no longer mandatory** to have a valid `SKILL.md` for the module's technical tools to register. If the file is missing or malformed, the agent will still be able to see and execute your actions defined in `config.ts`, but it will lack narrative instructions on *how* and *when* to use them.
 
 > [!TIP]
-> **Recommended use:** Always include a `SKILL.md`. Without it, the agent may hallucinate parameters or ignore the security policies you define.
+> **Recommended Use:** Always include a `SKILL.md`. Without it, the agent may hallucinate with parameters or ignore security policies you define.
 
 Here is a complete and real example of a `SKILL.md` file (based on Urano's MiniChat module):
 
@@ -277,7 +282,7 @@ Captures the user's current screen, respecting their privacy settings.
 
 ## Usage Protocol
 
-1.  **Contextual Vision**: Whenever the user makes deictic references ("this", "here", "this window"), use `capture_screen_with_consent` to obtain the visual truth.
+1.  **Contextual Vision**: Whenever the user makes deictic references ("this", "here", "this window"), use `capture_screen_with_consent` to get the visual truth.
 2.  **Privacy**: If the user denies consent, do not insist excessively. Explain why vision would help you be more useful.
 
 > [!IMPORTANT]
@@ -285,20 +290,20 @@ Captures the user's current screen, respecting their privacy settings.
 ```
 
 ### Why `type: mcp`?
-Thanks to this tag in the `frontmatter`, Urano's **SkillRegistry** knows that this skill **should not be listed globally** in the universal "Agent Editor" panel, as otherwise, it would clutter the experience for a human editor by listing endless irrelevant technical tools (e.g. *postgres databases, git connectors*). The skill remains hidden and entirely available to rehydrate in the background as long as the Agent has explicit *Authorized MCP Modules*.
+Thanks to this tag in the `frontmatter`, Urano's **SkillRegistry** knows that this skill **should not be listed globally** in the universal "Agent Editor" panel, since otherwise, it would saturate the experience of a human editor listing endless irrelevant technical tools (e.g., *postgres databases, git connectors*). The skill remains hidden and available entirely to rehydrate in the background as long as the Agent has explicit *Authorized MCP Modules*.
 
 ### 🧠 The Skill-First Protocol (Mandatory)
-Starting with version 1.3.0, Urano Core imposes a `<mcp_protocol>` instruction block on the Agent. This block prohibits it from using your `urano_*` tools if it hasn't first executed `urano_read_skill`.
+Starting with version 1.3.0, Urano Core imposes a `<mcp_protocol>` block of instructions on the Agent. This block prohibits it from using your `urano_*` tools if it has not first executed `urano_read_skill`.
 
 **What does this mean for you?**
 - Your `SKILL.md` will **always** be consulted before the agent uses your API.
-- You should include validation rules and clear JSON examples in the `SKILL.md`.
-- You don't need to overload tool descriptions in `config.ts`, as the full "instruction manual" resides in the skill and will be read on demand.
+- You must include validation rules and clear JSON examples in the `SKILL.md`.
+- You do not need to clutter tool descriptions in `config.ts`, as the full "instruction manual" resides in the skill and will be read on demand.
 
 
 ---
 
-## 7. Development, Packaging, and Distribution (Marketplace)
+## 6. Development, Packaging, and Distribution (Marketplace)
 
 Urano implements a robust **Plugin Ecosystem (Marketplace)** and a **Developer Mode (Live Test)**. Gone are the days of manually compiling and uploading ZIPs during the development phase.
 
@@ -306,14 +311,14 @@ Urano implements a robust **Plugin Ecosystem (Marketplace)** and a **Developer M
 
 To test your plugin in real-time while writing code, use the **Developer** tab in Urano's **MCP Manager**:
 
-1.  **Link Folder (Symlink):** In the interface, click on "Link Local Folder" and select your MCP project's root directory (where your `config.ts` is).
-2.  **Hot Reload:** Urano will create a symbolic link (Junction on Windows) to your vault. A background service (`fs.watch`) will monitor your TypeScript/JavaScript files.
-3.  **Automatic Reload:** When you save a file, Urano will invalidate Node's cache (`require.cache`) and reload your schemas and classes in milliseconds. You will see the `HOT_RELOAD` event in the activity panel.
+1.  **Link Folder (Symlink):** In the interface, click on "Link Local Folder" and select the root directory of your MCP project (where your `config.ts` is).
+2.  **Hot Reloading:** Urano will create a symbolic link (Junction in Windows) to your vault. A background service (`fs.watch`) will monitor your TypeScript/JavaScript files.
+3.  **Automatic Reload:** When you save a file, Urano will invalidate the Node cache (`require.cache`) and reload your schemas and classes in milliseconds. You will see the `HOT_RELOAD` event in the activity panel.
 4.  **No source code required:** Developers do not need to compile Urano Desktop or have access to its source code to test their plugins natively.
 
 ### 📦 Construction and Bundling (esbuild)
 
-Installing entire `node_modules` folders directly inside a final file is not scalable, provides little protection for your intellectual property, and causes path limit issues (MAX_PATH on Windows).
+Installing entire `node_modules` folders directly inside a final file is not scalable, provides little protection for your intellectual property, and generates path limit issues (MAX_PATH on Windows).
 
 The **mandatory practice** for distributing your MCP is to create a bundle with **esbuild**:
 
@@ -322,9 +327,9 @@ The **mandatory practice** for distributing your MCP is to create a bundle with 
     `npx esbuild config.ts Plugins/**/*.ts --bundle --platform=node --outdir=dist --format=cjs`
 3.  **Result:** You will get minified and unified code in the `dist` folder.
 4.  Copy any necessary static files (such as `SKILL.md` or images) to the `dist` folder.
-5.  Compress **the contents** of the `dist` folder into a `.zip` file. *(Do not compress the dist folder itself, but the files inside).*
+5.  Compress **the content** of the `dist` folder into a `.zip` file. *(Do not compress the dist folder itself, but the files inside).*
 
-### 🚀 Publishing on the Marketplace (GitHub Registry)
+### 🚀 Publishing in the Marketplace (GitHub Registry)
 
 Urano manages its Marketplace through a remote `registry.json` file hosted on a public GitHub repository.
 
@@ -333,7 +338,7 @@ Urano manages its Marketplace through a remote `registry.json` file hosted on a 
 
 ```json
 {
-  "id": "MySuperMcp",
+  "id": "MySuperMCP",
   "name": "Super MCP",
   "author": "Your Name",
   "description": "Brief description of what the plugin does.",
@@ -348,26 +353,26 @@ Urano manages its Marketplace through a remote `registry.json` file hosted on a 
 
 ### 🔄 Versioning and Updates System
 
-The Urano Desktop backend will handle the rest:
+Urano Desktop's backend will handle the rest:
 -   **Remote Installation:** The user clicks "Install" and Urano downloads the ZIP, validates integrity (Zip Slip protection), and extracts it into the isolated production vault.
--   **Control File:** Urano automatically generates an `_installed.json` file inside the plugin folder to track the current installed `version` and the `source` (registry or dev-link).
--   **Automatic Updates:** A background service checks `registry.json` periodically (every 6 hours). If it detects a higher version (SemVer), it notifies the user in the Marketplace tab to update with 1-click. Before updating, Urano creates an automatic backup of the previous version in `.mcp_backups`.
+-   **Control File:** Urano automatically generates an `_installed.json` file within the plugin folder to track the current `version` installed and the `source` (registry or dev-link).
+-   **Automatic Updates:** A background service checks the `registry.json` periodically (every 6 hours). If it detects a higher version (SemVer), it notifies the user in the Marketplace tab to update with 1-click. Before updating, Urano creates an automatic backup of the previous version in `.mcp_backups`.
 
 ### 🛡️ Responsible Development: Whitelisting
 If your MCP has access to sensitive resources (files, processes, network), it is **mandatory** to implement a validation layer in your Plugin.
-1. Define a field in `settings` of `config.ts` (e.g.: `ALLOWED_APPS`).
+1. Define a field in `settings` of `config.ts` (e.g., `ALLOWED_APPS`).
 2. In your `executeAction`, read that value from the `configStore`.
-3. Validate the request against that value. If it fails, return a descriptive error: `"AI ATTENTION: The requested resource is outside the whitelist allowed by the user."`.
+3. Validate the request against that value. If it fails, return a descriptive error: `"AI ATTENTION: The requested resource is outside the white list allowed by the user."`.
 
 ---
 
-## 8. Creating Audio-Aware Plugins
+## 7. Creating Audio-Aware MCPs
 
-Urano includes a **native Audio Engine** (`useAudioEngine`) that allows capturing user voice without your MCP having to handle microphones directly. Transcribed voice chunks reach your plugin as plain text.
+Urano includes a **native Audio Engine** (`useAudioEngine`) that allows capturing user voice without your MCP having to handle microphones directly. Already transcribed voice chunks arrive at your plugin as plain text.
 
 ### Pattern: Plugin that processes voice chunks in real-time
 
-Ideal for MCPs like live presentations, dictation assistants, or voice commands.
+Ideal for MCPs such as live presentations, dictation assistants, or voice commands.
 
 ```typescript
 // Plugins/Presentation/PresentationPlugin.ts
@@ -382,8 +387,8 @@ export class PresentationPlugin {
         return { loaded: true, totalStages: this.stages.length }
     }
 
-    // High frequency action: receives voice chunks directly from AudioEngine
-    // This action does NOT invoke the LLM on each call — it is pure Plugin logic.
+    // High-frequency action: receives voice chunks directly from the AudioEngine
+    // This action DOES NOT invoke the LLM in each call — it is pure Plugin logic.
     async apiProcessvoicechunk(payload: { chunk: string }) {
         const current = this.stages[this.currentStageIndex]
         if (!current) return { action: 'none' }
@@ -443,29 +448,27 @@ Total: ~265ms (without LLM) ✅
 ```
 
 > [!TIP]
-> Reserve the LLM for generating the **content** of the stages at the beginning (when loading the script), not for processing each voice fragment. This way you get maximum intelligence with minimum operational latency.
+> Reserve the LLM to generate the **content** of the stages at the beginning (when you load the script), not to process each voice fragment. This way you get maximum intelligence with minimum operational latency.
 
-### Audio Device Selection by the User
+### User Audio Device Selection
 
-From the **AgentsDashboard > Audio Configuration**, the user can choose the microphone to be used. You don't need to manage this in your plugin.
+From **AgentsDashboard > Audio Configuration**, the user can choose the microphone to be used. You do not need to manage this in your plugin.
 
 
-## 9. Dynamic Rendering and the LivePresenter Pattern
+## 8. Dynamic Rendering and the LivePresenter Pattern
 
-Starting with version 1.3.0, MCP modules can render complex React interfaces in the frontend using the **MultiverseTabs** module. This allows an agent not just to "speak", but to "build" applications in real-time.
+Starting with version 1.3.0, MCP modules can render complex React interfaces in the frontend using the **MultiverseTabs** module. This allows an agent to not just "talk", but to "build" applications in real-time.
 
-### Triggering a Rendering from a Plugin
+### Invoking a Rendering from a Plugin
 
-If your plugin needs to display a dashboard, a chart, or a presentation, it must invoke the `generatedynamicui` action of MultiverseTabs.
+If your plugin needs to show a dashboard, a chart, or a presentation, it must invoke the `generatedynamicui` action of MultiverseTabs.
 
 ```typescript
 // Plugins/Visualization/VizPlugin.ts
 public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
-    const { CoreFactory } = await import('@core/CoreFactory');
-    const pluginManager = await CoreFactory.getPluginManager();
-    
-    // We invoke the MultiverseTabs plugin directly
-    await pluginManager.executeAction('MultiverseTabs', 'Tabs', 'generatedynamicui', {
+    // We invoke the MultiverseTabs plugin using the injected helper
+    // This ensures compatibility in both Dev and Production modes.
+    await this.config._callPlugin('MultiverseTabs', 'Tabs', 'generatedynamicui', {
         sessionId: payload.sessionId,
         purpose: 'dashboard-analytics',
         spec: {
@@ -486,8 +489,8 @@ public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
 
 For a smooth user experience, follow this pattern in your plugins:
 
-1.  **Immediate Static Response**: Return a text summary or multimodal `MessagePart[]` so the user knows the action has started.
-2.  **Asynchronous Dynamic Enhancement**: Trigger `generatedynamicui` in the background to open the interactive tab.
+1.  **Immediate Static Response**: Return a text summary or a multimodal `MessagePart[]` so the user knows the action has started.
+2.  **Asynchronous Dynamic Improvement**: Trigger the background `generatedynamicui` to open the interactive tab.
 
 ```typescript
 async executeAction(action: string, payload: any) {
@@ -496,107 +499,109 @@ async executeAction(action: string, payload: any) {
         this.apiRenderDashboard(payload); 
 
         // 2. Return instant confirmation to the Agent context
-        return "I have started the visual analysis in a new Multiverse tab. While it loads, I can confirm that preliminary data shows 20% growth.";
+        return "I have started the visual analysis in a new Multiverse tab. While it loads, I can confirm that preliminary data shows a growth of 20%.";
     }
 }
 ```
 
 ---
 
-## 10. Whitelist and Security (FileSystem)
+## 9. White List and Security (FileSystem)
 
-If your module handles local files, it is vital that the agent knows which paths it is allowed beforehand.
+If your module handles local files, it is vital that the agent knows which paths are allowed beforehand.
 
-1.  **`listAllowed` action**: Always implement an action that returns the content of your authorized path `settings`.
-2.  **Protocol in `SKILL.md`**: Instruct the agent to **always** execute `listAllowed` before trying to read or write files. This avoids permission errors (`ENOENT`) and improves model confidence.
+1.  **`listAllowed` Action**: Always implement an action that returns the content of your authorized path `settings`.
+2.  **`SKILL.md` Protocol**: Instruct the agent to **always** execute `listAllowed` before attempting to read or write files. This avoids permission errors (`ENOENT`) and improves model confidence.
 
 ```markdown
 # FileSystem Instructions
-Before performing any file operations, you MUST call `urano_filesystem_localfiles_listallowed` to know the secure paths authorized by the user. Do not try to access paths outside this list.
+Before performing any file operations, you MUST call `urano_filesystem_localfiles_listallowed` to know the secure paths authorized by the user. Do not attempt to access paths outside this list.
 ```
 
 
 ## 🛠️ Resilience and Stability Protocol (AI SDK v6)
 
-Urano Desktop implements automatic protection layers in the **RuntimeLoop** to ensure that MCP agents do not corrupt sessions:
+Urano Desktop implements automatic protection layers in the **RuntimeLoop** to ensure MCP agents do not corrupt sessions:
 
-### 1. Orphan Tool Cleanup
-If a turn is interrupted (manual cancellation, network crash), the engine automatically detects `assistant` type messages that contain tool calls without a result. Before starting a new turn, the system cleans up these calls to avoid the `AI_MissingToolResultsError`.
+### 1. Cleanup of Orphaned Tools
+If a turn is interrupted (manual cancellation, network crash), the engine automatically detects `assistant` type messages that contain tool calls without results. Before starting a new turn, the system cleans up these calls to avoid the `AI_MissingToolResultsError`.
 
 ### 2. Native Vision Validation (Hybrid Pattern)
-Before injecting images into the context of an MCP plugin (e.g. screen captures), the system validates if the configured model supports vision (GPT-4o, Claude 3.5, etc.). 
+Before injecting images into the context of an MCP plugin (e.g., screen captures), the system validates if the configured model supports vision (GPT-4o, Claude 3.5, etc.). 
 
-**Interception Logic**: To ensure stability, the **RuntimeLoop** automatically intercepts any tool response (whether a flat object or inside an Array) containing the properties `base64` or `image`. Instead of leaving the heavy binary in the tool response, it extracts it and moves it to an adjacent injected message, leaving a lightweight placeholder text in its place.
+**Interception Logic**: To ensure stability, the **RuntimeLoop** automatically intercepts any tool response (whether a plain object or within an Array) that contains the `base64` or `image` properties. Instead of leaving the heavy binary in the tool response, it extracts it and moves it to an adjacent injected message, leaving a light placeholder text in its place.
 
-**Developer Return Standard:**
-For your native tools or MCP servers to send multimodal files (images) to the LLM safely without causing token validation errors, simply return the data using one of these structures:
+**Return Standard for Developers:**
+For your native tools or MCP servers to securely send multimodal files (images) to the LLM without causing token validation errors, simply return the data using one of these structures:
 
 ```javascript
-// Option 1: Direct Object (e.g. LocalFilesPlugin)
+// Option 1: Direct Object (e.g., LocalFilesPlugin)
 return {
     base64: "iVBORw0KGgo...", 
     mimeType: "image/png" 
 };
 
-// Option 2: Native AI SDK Parts (e.g. DesktopPlugin / SystemEye)
+// Option 2: AI SDK Native Parts (e.g., DesktopPlugin / SystemEye)
 return [
-    { type: "text", text: "Image processed" },
+    { type: "text", text: "Processed image" },
     { type: "image", image: "iVBORw0KGgo...", mimeType: "image/png" }
 ];
 ```
-By meeting this standard, it doesn't matter if your tool is MCP or Native: the Urano engine will handle the image in the same universal way, ensuring it reaches multimodal models clean.
+By following this standard, it doesn't matter if your tool is MCP or Native: the Urano engine will handle the image in the same universal way, ensuring it arrives clean to the multimodal models.
 
 ---
 
 ## 🎨 UI Extension: Session Badges
 
-For MCP modules that generate documents or open external contexts, it is recommended to use the **Session Badges API** (`badges: SessionBadge[]` in `SessionMetadata`). This allows injecting interactive native quick-access buttons directly into the user's conversation, allowing your MCP to trigger IPC routes without additional LLM interaction. Consult the technical development guide for code examples.
+For MCP modules that generate documents or open external contexts, it is recommended to use the **Session Badges API**. This allows injecting interactive native quick-access buttons directly into the user's conversation. 
+
+However, since external plugins should not import `@core`, they must perform this update via `_callPlugin` (see next section).
 
 ---
 
-## 🔌 Use of Native Functions (@core)
+## 🔌 Import Limitations and the Injected Pattern
 
-MCP modules in Urano Desktop are not limited to responding to the LLM; they have full access to operating system capabilities and the Urano engine through the `@core` alias.
+MCP modules in Urano Desktop are not limited to responding to the LLM; they have access to the capabilities of the Urano engine. However, there is a critical distinction between **Native** modules and **External (Workspace)** modules.
 
-### Centralized Import
-Starting with version v2.2, you can import core services from the core index:
+### ⚠️ The Alias Problem (`@core`)
+Urano Desktop uses TypeScript aliases (such as `@core/*`). When you develop an external plugin in a separate folder:
+1.  **In Development**: The on-the-fly transpiler cannot resolve `@core` because your folder is outside the project "root".
+2.  **In Production**: The bundled code could lose the reference to the global Node context.
+
+> [!CAUTION]
+> **Direct Imports Prohibited**: Do not use `import { ... } from '@core'` in plugins intended for the Workspace. Your plugin will fail with a `MODULE_NOT_FOUND` error upon execution.
+
+### ✅ The Solution: Injected Dependency (`_callPlugin`)
+The system automatically injects a bridge function into the configuration object that your constructor receives.
 
 ```typescript
-import { NotificationService, AIManager, CoreFactory } from '@core';
-```
+constructor(moduleConfig: any) {
+    this.config = moduleConfig;
+    // this.config._callPlugin is now available
+}
 
-### Example: End of Process Notification
-If your MCP executes a task that takes several seconds/minutes (e.g.: exporting a database), you can notify the user natively when it finishes, allowing them to return to the chat with a click:
-
-```typescript
-async apiExportData(payload: { format: string }) {
-    // 1. Execute heavy task...
-    const result = await this.longRunningTask(payload.format);
-
-    // 2. Natively notify the user
-    // The system will automatically focus the correct window upon clicking
-    await NotificationService.send(
-        "Export Complete", 
-        `Your ${payload.format} file is ready to download.`,
-        {
-            sessionId: this.sessionId, // Allows returning to this specific chat
-            isMiniChat: this.isMiniChat // Detects whether to open the bubble or Dashboard
-        }
+private async callOtherPlugin(targetModule, targetPlugin, action, data) {
+    return await this.config._callPlugin(
+        targetModule, 
+        targetPlugin, 
+        action, 
+        data
     );
-
-    return { success: true, fileUrl: result.url };
 }
 ```
+
+### When to use `@core`?
+You can only use `@core` imports if you are developing a **native** module that will be compiled along with Urano Desktop's main source code (within `src/main/Modules`).
 
 ---
 
 ## 🎙️ Integration with the Native Audio Engine
 
-Urano has a native voice capture system (`useAudioEngine`) available on the frontend. MCP modules can receive audio as input in the following ways:
+Urano has a native voice capture system (`useAudioEngine`) available in the frontend. MCP modules can receive audio as input in the following ways:
 
-### How voice chunks reach your MCP
+### How voice chunks arrive at your MCP
 
-The `AudioEngine` transcribes the audio and sends it to the agent **as plain text** via the normal IPC channel (`agentSessionSend`). Your MCP does not need to listen to the microphone directly: the agent will receive the already processed text.
+The `AudioEngine` transcribes the audio and sends it to the agent **as plain text** through the normal IPC channel (`agentSessionSend`). Your MCP does not need to listen to the microphone directly: the agent will receive the already processed text.
 
 For an MCP like `LivePresenter` that needs to react to each chunk without invoking the LLM, a direct handler can be registered:
 
@@ -619,21 +624,21 @@ window.electronAPI.customIpcCall('/module/LivePresenter/plugins/Presentation/pro
 ```
 
 > [!TIP]
-> This pattern (Audio → Direct Plugin, no LLM per chunk) is the key to achieving voice-to-visual latency **< 600ms** in real-time.
+> This pattern (Audio → Direct Plugin, without LLM per chunk) is the key to achieving voice-to-visual latency of **< 600ms** in real-time.
 
 ### Audio Device Selection
 
-Users can select their preferred microphone from the **AgentsDashboard > Audio Configuration**. The selected `deviceId` is passed to `AudioEngine.start()` and is available for Whisper in future implementations.
+Users can select their preferred microphone from **AgentsDashboard > Audio Configuration**. The selected `deviceId` is passed to `AudioEngine.start()` and is available for Whisper in future implementations.
 
 ---
 
 ## ✋ Interactive Approval Protocol (Tool Approval)
 
-As of the recent version, the Urano engine supports pausing the execution of tools that perform destructive or critical actions (such as executing terminal commands, sending mass emails, etc.) to request interactive confirmation from the user.
+As of the recent version, the Urano engine supports pausing the execution of tools that perform destructive or critical actions (such as terminal command execution, mass email sending, etc.) to request interactive confirmation from the user.
 
 ### How to implement it in a Native Plugin?
 
-When defining the tool in the `apiList` method, simply add the property `requiresApproval: true`:
+When defining the tool in the `apiList` method, simply add the `requiresApproval: true` property:
 
 ```typescript
 export default class SystemTerminal extends PluginBase {
@@ -657,17 +662,17 @@ export default class SystemTerminal extends PluginBase {
 ### Event Lifecycle:
 1. The Agent decides to use the tool and the engine intercepts `requiresApproval: true`.
 2. The **RuntimeLoop** pauses its asynchronous thread and emits the IPC event `agent-tool-approval-requested`.
-3. The **Dashboard (React)** transforms the status bubble into an interactive yellow "Approval Required" dialog showing the arguments (e.g. the command to execute) along with two buttons: Approve or Reject.
+3. The **Dashboard (React)** transforms the status bubble into an interactive yellow "Approval Required" dialog showing the arguments (e.g., the command to be executed) along with two buttons: Approve or Reject.
 4. Upon clicking, the IPC response `agent-tool-approval-response` is emitted back.
 5. If approved, the **RuntimeLoop** resumes and executes the `execute()` function. If rejected, it aborts and returns a `ToolError` saying "User rejected the action", allowing the Agent to understand that permission was denied.
 
 ---
 
-## ⚡ Pattern: Rate Limiter for Third Party APIs (Serial Queue)
+## ⚡ Pattern: Rate Limiter for Third-Party APIs (Serial Queue)
 
 ### The Problem
 
-The **RuntimeLoop** executes all tools generated in a single turn using `Promise.all()`. This means that if the agent emits three tool calls in the same step:
+The **RuntimeLoop** executes all tools generated in a single turn using `Promise.all()`. This means that if the agent emits three tool calls in a single step:
 
 ```
 user_feed()  ─┐
@@ -675,21 +680,21 @@ user_stats() ─┼─ Promise.all → simultaneous trigger → 429 Rate Limit
 search()      ─┘
 ```
 
-If all three tools call the same external API with a limit of 1 req/sec (like apiexternalexample), the three HTTP requests arrive concurrently and the last two fail with `429 Too Many Requests`.
+If all three tools call the same external API with a limit of 1 req/sec (such as apiexternalexample), the three HTTP requests arrive concurrently and the last two fail with `429 Too Many Requests`.
 
-### Why NOT to add a `parallel: false` flag to the Core
+### Why NOT Add a `parallel: false` Flag to Core
 
-It might seem tempting to add `parallel: false` to the tool schema in `config.ts` so the `RuntimeLoop` executes them in series. However, this is not the right solution because:
+It might seem tempting to add `parallel: false` to the tool schema in `config.ts` so that the `RuntimeLoop` executes them serially. However, this is not the correct solution because:
 
-- It would require changing `ModuleConfig.ts`, `SkillRegistry.ts`, `McpTool.ts` and `RuntimeLoop.ts` — high risk for a very specific case.
+- It would require changing `ModuleConfig.ts`, `SkillRegistry.ts`, `McpTool.ts`, and `RuntimeLoop.ts` — high risk for a very specific case.
 - It would make **all** tools in the turn wait, even those that do not use the limited API.
 - It would violate the single responsibility principle: the RuntimeLoop should not know about external API rate-limiting policies.
 
-### The Solution: HTTP-level Serial Queue
+### The Solution: Serial Queue at HTTP Level (Serial Queue)
 
 The correct solution is to implement a **promise semaphore** that serializes only the HTTP calls to the limited API, **completely invisible** to the agent and the RuntimeLoop.
 
-**Reference implementation** (see `MarketsPlugin.ts`):
+**Reference Implementation** (see `MarketsPlugin.ts`):
 
 ```typescript
 // ── Rate limiting constants ────────────────────────────────────────────
@@ -711,13 +716,13 @@ function myApiEnqueue<T>(fn: () => Promise<T>): Promise<T> {
     return result;
 }
 
-// fetch wrapper using the queue
+// Fetch wrapper that uses the queue
 async function myFetch(path: string, apiKey: string): Promise<any> {
     return myApiEnqueue(async () => {
         const res = await fetch(`https://api.my-service.com${path}`, {
             headers: { 'Authorization': `Bearer ${apiKey}` }
         });
-        // 429 handling with auto retry using Retry-After
+        // Handle 429 with automatic retry using Retry-After
         if (res.status === 429) {
             const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10);
             await new Promise(r => setTimeout(r, retryAfter * 1000 + 100));
@@ -738,18 +743,18 @@ async function myFetch(path: string, apiKey: string): Promise<any> {
 ```
 Promise.all triggers:       user_feed()   user_stats()   search()
                                  │               │              │
-                            they call:       myFetch()     myFetch()     myFetch()
+                            call:           myFetch()     myFetch()     myFetch()
                                  │               │              │
                           myApiEnqueue()  myApiEnqueue() myApiEnqueue()
                                  │               │              │
                           ┌──────▼───────────────▼──────────────▼──────┐
                           │          SERIAL QUEUE (myApiQueue)         │
-                          │   Req 1 → [wait 1.1s] → Req 2 → [1.1s]     │
-                          │   → Req 3                                  │
+                          │   Req 1 → [waits 1.1s] → Req 2 → [1.1s]   │
+                          │   → Req 3                                   │
                           └────────────────────────────────────────────┘
 ```
 
-The RuntimeLoop's `Promise.all` ends when **all three promises resolve**, which happens sequentially with 1.1s separation. From the point of view of the agent and the RuntimeLoop, the difference is only in latency, not behavior.
+The RuntimeLoop's `Promise.all` ends when **all three promises resolve**, which happens sequentially with a 1.1s separation. From the point of view of the agent and the RuntimeLoop, the difference is only in latency, not in behavior.
 
 ### When to Use This Pattern
 
@@ -757,19 +762,19 @@ Use a serial queue when your plugin integrates an external API that:
 
 | Condition | Example |
 |-----------|---------|
-| Has write OR read rate limits | apiexternalexample: ~1 req/s, Twitter API: 300 req/15min |
+| Has write OR read rate limit | apiexternalexample: ~1 req/s, Twitter API: 300 req/15min |
 | The agent can call multiple tools from the same provider in one turn | `user_feed` + `user_stats` + `search` → all use apiexternalexample |
 | The rate limit error is not recoverable in that same request | `429` without Retry-After header |
 
 > [!TIP]
-> The queue is a **module-level singleton** (declared outside the plugin class). This ensures that even if multiple sessions of the same agent are active simultaneously, all calls to the API share the same queue and respect the global rate limit.
+> The queue is a **module-level singleton** (declared outside the plugin class). This ensures that even if multiple sessions of the same agent are active simultaneously, all API calls share the same queue and respect the global rate limit.
 
 > [!NOTE]
-> If the API does not return the `Retry-After` header, use a conservative value of 1–2 seconds as fallback. Retry is optional but highly recommended to prevent a momentary traffic spike from bringing down all functionality.
+> If the API does not return the `Retry-After` header, use a conservative value of 1–2 seconds as a fallback. Retry is optional but highly recommended to prevent a momentary traffic spike from bringing down all functionality.
 
 > [!CAUTION]
 > **Critical Timeout**: When using a serial queue, it is mandatory that the `fetch` inside the queue has a timeout (using `AbortController`). If a request gets hung without a timeout, it will **block the entire queue** for the rest of the tools and users, leaving the module unusable until restart.
-> A timeout for the wait time *in* the queue is also recommended (e.g. aborting if the request has been waiting >15s for its turn).
+> A timeout for the wait time *in* the queue is also recommended (e.g., abort if the request has been waiting >15s for its turn).
 
 ---
 
@@ -777,9 +782,9 @@ Use a serial queue when your plugin integrates an external API that:
 
 To ensure consistency between complex modules (such as UranoMaps or SystemEye), the following development patterns have been standardized:
 
-### 1. Window Management per Session (`label:sessionId`)
+### 1. Window Management by Session (`label:sessionId`)
 
-When a plugin opens tabs in `MultiverseTabs`, it should avoid duplicating windows unnecessarily and allow the agent to recover specific contexts.
+When a plugin opens tabs in `MultiverseTabs`, it should avoid unnecessarily duplicating windows and allow the agent to recover specific contexts.
 
 **Registration Pattern:**
 ```typescript
@@ -805,7 +810,7 @@ async apiLaunch(params: { label: string, sessionId: string, ... }) {
 
 ### 2. Window State Persistence (`state.json`)
 
-Plugins that handle in-memory data (alerts, orders, positions) must persist their state in the user's `userData` to survive restarts.
+Plugins that handle data in memory (alerts, orders, positions) must persist their state in the user's `userData` to survive restarts.
 
 **Recommended Location:**
 - **Windows**: `%APPDATA%/Urano Desktop/[plugin]_state.json`
@@ -826,9 +831,9 @@ For an agent to "see" the content of a window or map, the plugin must implement 
 
 **Capture Standards:**
 1. **Cache Directory**: Always use `path.join(os.homedir(), '.urano', 'cache', 'screenshots')`.
-2. **Multimodal Return**: The tool must return an array with the local path and base64 for the `RuntimeLoop` to process.
+2. **Multimodal Return**: The tool must return an array with the local path and base64 for the `RuntimeLoop` to process it.
 
-**Return Example:**
+**Return example:**
 ```typescript
 return [
     { type: 'text', text: `Capture saved in: ${filePath}` },
@@ -852,34 +857,34 @@ When creating new UI components (such as the `Map` widget), these rules must be 
     ```
 
 > [!TIP]
-> If your component requires heavy libraries (such as Leaflet or ECharts), implement it using **Lazy Loading** in the frontend so as not to degrade the initial application load time.
+> If your component requires heavy libraries (such as Leaflet or ECharts), implement it using **Lazy Loading** in the frontend so as not to degrade the initial loading time of the application.
 
 ---
 
 ## 🔒 Generic OS Permission System
 
-Urano implements a centralized mechanism for any MCP to request operating system level permissions natively, with **real verification** (not just registration) before saving the state.
+Urano implements a centralized mechanism so that any MCP can request permissions at the operating system level natively, with **real verification** (not just registration) before saving the state.
 
 ### Supported Permission Types
 
 | `permissionType` | Description | macOS | Windows | Linux |
 |---|---|---|---|---|
-| `screen` | Screen Capture | System dialog / Settings | Privacy settings | None required |
-| `microphone` | Microphone Access | Native `askForMediaAccess` | `ms-settings:privacy-microphone` | None required |
-| `camera` | Camera Access | Native `askForMediaAccess` | `ms-settings:privacy-webcam` | None required |
-| `desktop-audio` | Desktop Audio (loopback) | ⚠️ Requires virtual device | WASAPI loopback via renderer | PulseAudio/PipeWire |
+| `screen` | Screen capture | System dialog / Settings | Privacy settings | None required |
+| `microphone` | Microphone access | Native `askForMediaAccess` | `ms-settings:privacy-microphone` | None required |
+| `camera` | Camera access | Native `askForMediaAccess` | `ms-settings:privacy-webcam` | None required |
+| `desktop-audio` | Desktop audio (loopback) | ⚠️ Requires virtual device | WASAPI loopback via renderer | PulseAudio/PipeWire |
 
 > [!WARNING]
-> On **macOS**, desktop audio capture (`desktop-audio`) is not available natively. It requires installing **BlackHole** (free) or **Loopback** and configuring it as the system audio output.
+> On **macOS**, desktop audio capture (`desktop-audio`) is not available natively. It requires installing **BlackHole** (free) or **Loopback** and configuring it as system audio output.
 
 ### 1. Definition in `config.ts`
-Add a `button` type field to your module's `settings` array. The `name` will serve as a slug in the Vault (`Vault`) to persist whether the user granted permission.
+Add a field of type `button` in the `settings` array of your module. The `name` will serve as a slug in the Vault (`Vault`) to persist whether the user granted the permission.
 
 ```typescript
-// your module's config.ts
+// config.ts of your module
 settings: [
     {
-        name: 'capture-permission',          // Saved permission slug in Vault
+        name: 'capture-permission',          // Slug of the permission saved in Vault
         title: 'Screen Capture',
         type: 'button',
         buttonText: 'Request OS Permission',
@@ -892,7 +897,7 @@ settings: [
         title: 'Microphone Access',
         type: 'button',
         buttonText: 'Request OS Permission',
-        description: 'Allows the agent to hear microphone audio',
+        description: 'Allows the agent to listen to microphone audio',
         actionRoute: 'mcp-request-os-permission',
         actionPayload: { permissionType: 'microphone' },
     },
@@ -901,7 +906,7 @@ settings: [
         title: 'Desktop Audio',
         type: 'button',
         buttonText: 'Request OS Permission',
-        description: 'Allows the agent to hear system audio (loopback)',
+        description: 'Allows the agent to listen to system audio (loopback)',
         actionRoute: 'mcp-request-os-permission',
         actionPayload: { permissionType: 'desktop-audio' },
     },
@@ -909,17 +914,17 @@ settings: [
 ```
 
 ### 2. Automatic Behavior
-- The frontend automatically injects `moduleName` and `permissionSlug` (= field `name`) into the payload.
+- The frontend automatically injects `moduleName` and `permissionSlug` (= `name` of the field) into the payload.
 - The backend **verifies the real permission** before saving:
-  - `screen`: Captures a real thumbnail; if empty, returns an error and opens System Settings on macOS.
-  - `microphone`/`camera`: Uses `systemPreferences.getMediaAccessStatus()` on macOS to check status before asking; in case of `'denied'` it directly opens the privacy screen.
+  - `screen`: Captures a real thumbnail; if empty, returns error and opens System Settings on macOS.
+  - `microphone`/`camera`: Uses `systemPreferences.getMediaAccessStatus()` on macOS to verify status before requesting; if `'denied'`, it opens the privacy screen directly.
   - `desktop-audio`: Informs the user about platform limitations.
-- The `'granted'` state is saved in the Vault **only if the permission is real**.
-- If subsequent capture detects the thumbnail is empty, it **automatically revokes** the `'granted'` state and resets the badge to amber.
+- The `'granted'` status is saved in the Vault **only if the permission is real**.
+- If subsequent capture detects the thumbnail is empty, it **automatically revokes** the `'granted'` status and resets the badge to amber.
 
-### 3. Reading Permission from a Plugin
+### 3. Read Permission from a Plugin
 
-Verify if permission was granted by querying the `Vault` directly from your plugin:
+Check if permission was granted by directly querying the `Vault` from your plugin:
 
 ```typescript
 import { Vault } from '../../../../core/Security/Vault';
@@ -929,12 +934,12 @@ async apiMyAction() {
     if (!isGranted) {
         return { success: false, consentRequired: true, message: 'Permission not granted' };
     }
-    // ... use permission
+    // ... use the permission
 }
 ```
 
 > [!TIP]
-> `McpManager` automatically displays the "System Permissions" section with status badges for all `button` type fields. Amber badges indicate action is required; green indicate permission is granted and verified.
+> The `McpManager` automatically shows the "System Permissions" section with status badges for all `button` type fields. Amber badges indicate action is required; green that permission is granted and verified.
 
 ---
 
@@ -970,9 +975,9 @@ export default class MyPlugin extends PluginBase {
         const thumb = primary?.thumbnail;
 
         if (!thumb || thumb.isEmpty()) {
-            // Revoke if OS no longer allows it
+            // Revoke if the OS no longer allows it
             Vault.deleteSecret(this.moduleName, 'capture-permission');
-            return { success: false, message: 'OS denied capture. Permission was revoked.' };
+            return { success: false, message: 'The OS denied capture. Permission was revoked.' };
         }
 
         const base64 = thumb.toPNG().toString('base64');
@@ -990,7 +995,7 @@ export default class MyPlugin extends PluginBase {
 
 #### 🎙️ `microphone` — Record microphone audio
 
-Microphone capture occurs in the **renderer process** (React/Web Audio API), not in the main process. Your plugin exposes a tool that the agent calls; the frontend reacts and records.
+Microphone capture occurs in the **renderer process** (React/Web Audio API), not in main. Your plugin exposes a tool the agent calls; the frontend reacts and records.
 
 **Step 1 — Plugin exposes tool (Main Process):**
 
@@ -1005,7 +1010,7 @@ export default class MyPlugin extends PluginBase {
         }
 
         // Emit event to renderer to start recording
-        // Renderer listens to 'plugin-mic-start' and returns audio via IPC
+        // Renderer listens for 'plugin-mic-start' and returns audio via IPC
         this.emitToRenderer('plugin-mic-start', {
             durationMs: payload.durationMs || 5000,
             sessionId: this.sessionId,
@@ -1041,7 +1046,7 @@ api.on('plugin-mic-start', async ({ durationMs, sessionId }) => {
 ```
 
 > [!NOTE]
-> If you already have `useAudioEngine` active on the frontend, you can recycle it directly instead of creating a new `MediaRecorder`. Refer to the **Native Audio Engine Integration** section of this guide.
+> If you already have `useAudioEngine` active in the frontend, you can recycle it directly instead of creating a new `MediaRecorder`. See the **Integration with the Native Audio Engine** section of this guide.
 
 ---
 
@@ -1111,7 +1116,7 @@ api.on('plugin-desktop-audio-start', async ({ durationMs, sessionId }) => {
 ```
 
 > [!IMPORTANT]
-> For `getUserMedia` with `chromeMediaSource: 'desktop'` to work in the Electron renderer, the window must have `contextIsolation: false` enabled or the preload must expose capture source IDs. In Urano, this is handled via the `desktop-capturer-get-sources` IPC.
+> For `getUserMedia` with `chromeMediaSource: 'desktop'` to work in the Electron renderer, the window must have `contextIsolation: false` enabled or the preload must expose the capture source IDs. In Urano, this is managed via the `desktop-capturer-get-sources` IPC.
 
 > [!WARNING]
-> On **macOS**, this code block will fail silently because the system does not expose system audio via `getUserMedia`. Check with `process.platform === 'darwin'` before executing.
+> On **macOS**, this code block will fail silently because the system does not expose system audio via `getUserMedia`. Verify with `process.platform === 'darwin'` before executing.

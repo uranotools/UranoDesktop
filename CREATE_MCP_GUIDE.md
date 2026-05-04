@@ -1,3 +1,7 @@
+<div align="center">
+  <p><b>English Version: <a href="./CREATE_MCP_GUIDE.en.md">CREATE_MCP_GUIDE.en.md</a></b></p>
+</div>
+
 # Urano MCP - Guía de Creación e Instalación
 
 Esta guía técnica está orientada a desarrolladores que deseen crear e integrar **Paquetes MCP (Model Context Protocol)** externos en la arquitectura de Agentes de Urano. Aquí aprenderás desde el concepto básico hasta configuraciones avanzadas para exponer herramientas dinámicas o estáticas y definir contextos (`Skills`) especializados.
@@ -192,25 +196,26 @@ Si desarrollas una herramienta MCP que lanza procesos de fondo, abre sub-pestañ
 ```typescript
 // Desde tu archivo MyPlugin.ts
 public async apiEjecutarTarea(payload: any) {
-    const { CoreFactory } = await import('@core/CoreFactory');
-    const manager = await CoreFactory.getSessionManager();
-    const session = manager.get(payload.sessionId);
-    
-    if (session) {
-        const badges = session.metadata.badges || [];
-        // Evitar duplicados
-        if (!badges.some(b => b.id === 'mi-reporte')) {
-            badges.push({
+    // [IMPORTANTE] Evita importar @core directamente en plugins externos/workspace
+    // ya que los alias de ruta no se resuelven fuera del entorno compilado de Urano.
+    // En su lugar, usa la capacidad inyectada por el sistema en this.config._callPlugin.
+
+    await this.config._callPlugin(
+        'Core',              // Módulo destino
+        'SessionManager',    // O la abstracción que necesites
+        'updateBadge',       // Acción específica
+        {
+            sessionId: payload.sessionId,
+            badge: {
                 id: 'mi-reporte',
                 label: 'Abrir Reporte Generado',
                 icon: '📊',
-                color: 'success', // 'default' | 'info' | 'success' | 'warning' | 'error'
+                color: 'success',
                 actionRoute: '/module/MyPlugin/plugins/Report/apiAbrirReporte',
                 actionData: { reportId: '123' }
-            });
-            await manager.updateSessionMetadata(payload.sessionId, { badges });
+            }
         }
-    }
+    );
     
     return { success: true };
 }
@@ -461,11 +466,9 @@ Si tu plugin necesita mostrar un dashboard, una gráfica o una presentación, de
 ```typescript
 // Plugins/Visualization/VizPlugin.ts
 public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
-    const { CoreFactory } = await import('@core/CoreFactory');
-    const pluginManager = await CoreFactory.getPluginManager();
-    
-    // Invocamos el plugin de MultiverseTabs directamente
-    await pluginManager.executeAction('MultiverseTabs', 'Tabs', 'generatedynamicui', {
+    // Invocamos el plugin de MultiverseTabs utilizando el helper inyectado
+    // Esto garantiza compatibilidad tanto en modo Dev como en Producción.
+    await this.config._callPlugin('MultiverseTabs', 'Tabs', 'generatedynamicui', {
         sessionId: payload.sessionId,
         purpose: 'dashboard-analytics',
         spec: {
@@ -550,43 +553,45 @@ Al cumplir este estándar, no importa si tu tool es MCP o Nativo: el motor de Ur
 
 ## 🎨 Extensión de UI: Session Badges
 
-Para módulos MCP que generan documentos o abren contextos externos, se recomienda utilizar el **API de Session Badges** (`badges: SessionBadge[]` en `SessionMetadata`). Esto permite inyectar botones nativos interactivos de acceso rápido directamente en la conversación del usuario, permitiendo a tu MCP desencadenar rutas IPC sin interacción adicional del LLM. Consulta la guía técnica de desarrollo para ejemplos de código.
+Para módulos MCP que generan documentos o abren contextos externos, se recomienda utilizar el **API de Session Badges**. Esto permite inyectar botones nativos interactivos de acceso rápido directamente en la conversación del usuario. 
+
+Sin embargo, dado que los plugins externos no deben importar `@core`, deben realizar esta actualización a través de `_callPlugin` (ver sección siguiente).
 
 ---
 
-## 🔌 Uso de Funciones Nativas (@core)
+## 🔌 Limitaciones de Imports y el Patrón Inyectado
 
-Los módulos MCP en Urano Desktop no están limitados a responder al LLM; tienen acceso total a las capacidades del sistema operativo y del motor de Urano a través del alias `@core`.
+Los módulos MCP en Urano Desktop no están limitados a responder al LLM; tienen acceso a las capacidades del motor de Urano. Sin embargo, existe una distinción crítica entre módulos **Nativos** y módulos **Externos (Workspace)**.
 
-### Importación Centralizada
-A partir de la versión v2.2, puedes importar los servicios principales desde el index del core:
+### ⚠️ El problema de los Alias (`@core`)
+Urano Desktop utiliza alias de TypeScript (como `@core/*`). Cuando desarrollas un plugin externo en una carpeta separada:
+1.  **En Desarrollo**: El transpilador al-vuelo no puede resolver `@core` porque tu carpeta está fuera del "root" del proyecto.
+2.  **En Producción**: El código empaquetado (bundle) podría perder la referencia al contexto global de Node.
+
+> [!CAUTION]
+> **Prohibición de Imports Directos**: No utilices `import { ... } from '@core'` en plugins destinados al Workspace. Tu plugin fallará con un error `MODULE_NOT_FOUND` al ejecutarse.
+
+### ✅ La Solución: Dependencia Inyectada (`_callPlugin`)
+El sistema inyecta automáticamente una función de puente en el objeto de configuración que recibe tu constructor.
 
 ```typescript
-import { NotificationService, AIManager, CoreFactory } from '@core';
-```
+constructor(moduleConfig: any) {
+    this.config = moduleConfig;
+    // this.config._callPlugin ahora está disponible
+}
 
-### Ejemplo: Notificación de Fin de Proceso
-Si tu MCP ejecuta una tarea que tarda varios segundos/minutos (ej: exportar una base de datos), puedes notificar al usuario nativamente cuando termine, permitiéndole volver al chat con un clic:
-
-```typescript
-async apiExportData(payload: { format: string }) {
-    // 1. Ejecutar tarea pesada...
-    const result = await this.longRunningTask(payload.format);
-
-    // 2. Notificar nativamente al usuario
-    // El sistema automáticamente enfocará la ventana correcta al hacer clic
-    await NotificationService.send(
-        "Exportación Completa", 
-        `Tu archivo ${payload.format} está listo para descargar.`,
-        {
-            sessionId: this.sessionId, // Permite volver a este chat específico
-            isMiniChat: this.isMiniChat // Detecta si debe abrir la burbuja o el Dashboard
-        }
+private async callOtherPlugin(targetModule, targetPlugin, action, data) {
+    return await this.config._callPlugin(
+        targetModule, 
+        targetPlugin, 
+        action, 
+        data
     );
-
-    return { success: true, fileUrl: result.url };
 }
 ```
+
+### ¿Cuándo usar `@core`?
+Solo puedes usar imports de `@core` si estás desarrollando un módulo **nativo** que se compilará junto con el código fuente principal de Urano Desktop (dentro de `src/main/Modules`).
 
 ---
 
