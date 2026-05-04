@@ -675,7 +675,7 @@ user_stats() ─┼─ Promise.all → disparo simultáneo → 429 Rate Limit
 search()      ─┘
 ```
 
-Si las tres tools llaman a la misma API externa con límite de 1 req/seg (como Oddpool), las tres requests HTTP llegan concurrentemente y las últimas dos fallan con `429 Too Many Requests`.
+Si las tres tools llaman a la misma API externa con límite de 1 req/seg (como apiexternalexample), las tres requests HTTP llegan concurrentemente y las últimas dos fallan con `429 Too Many Requests`.
 
 ### Por Qué NO Añadir una Bandera `parallel: false` al Core
 
@@ -757,8 +757,8 @@ Usa una cola serial cuando tu plugin integra una API externa que:
 
 | Condición | Ejemplo |
 |-----------|---------|
-| Tiene rate limit de escritura O lectura | Oddpool: ~1 req/s, Twitter API: 300 req/15min |
-| El agente puede llamar múltiples herramientas del mismo proveedor en un turno | `user_feed` + `user_stats` + `search` → todas usan Oddpool |
+| Tiene rate limit de escritura O lectura | apiexternalexample: ~1 req/s, Twitter API: 300 req/15min |
+| El agente puede llamar múltiples herramientas del mismo proveedor en un turno | `user_feed` + `user_stats` + `search` → todas usan apiexternalexample |
 | El error de rate limit no es recuperable en esa misma request | `429` sin Retry-After header |
 
 > [!TIP]
