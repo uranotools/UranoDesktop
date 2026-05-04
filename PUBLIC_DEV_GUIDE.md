@@ -3,7 +3,7 @@
 Bienvenido a la comunidad de desarrolladores de **Urano Desktop**. Esta guía está diseñada para enseñarte cómo empaquetar, distribuir y publicar tu plugin MCP (Model Context Protocol) en el catálogo oficial de Urano para que miles de usuarios puedan instalarlo con un solo clic.
 
 > [!NOTE]
-> Si buscas la guía de cómo programar la lógica interna de un plugin MCP (API, Audio, MultiverseTabs), consulta la documentación oficial dentro de la aplicación o en la [Wiki de Desarrollo de Urano]().
+> Si buscas la guía de cómo programar la lógica interna de un plugin MCP (API, Audio, MultiverseTabs), consulta la documentación oficial dentro de la aplicación o en la [Wiki de Desarrollo de Urano](CREATE_MCP_GUIDE.md).
 
 ---
 
