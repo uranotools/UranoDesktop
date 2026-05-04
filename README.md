@@ -1,84 +1,68 @@
-# 🚀 Guía de Usuario: Urano Desktop (GUI)
-
-Bienvenido a la nueva era de la productividad con **Urano Desktop**. Esta aplicación ha sido diseñada para brindarte el control total sobre agentes de inteligencia artificial inteligentes, modulares y, sobre todo, capaces de actuar sobre tu entorno real.
-
----
-
-## 📥 Comienza Ahora
-Para obtener la última versión optimizada, visita nuestro sitio oficial:
-👉 **[uranoai.com](https://uranoai.com)**
-
----
-
-## 🌟 ¿Qué es Urano Desktop?
-Urano Desktop es una plataforma de orquestación donde puedes construir y personalizar tus propios asistentes locales. A diferencia de otros sistemas, Urano vive en tu computadora, respetando tu privacidad y permitiéndote extender sus capacidades para que la IA no solo hable, sino que **haga**.
+<div align="center">
+  <img src="https://uranoai.com/assets/images/logo.png" alt="Urano Logo" width="120" />
+  <h1>Urano Desktop</h1>
+  <p><b>Tu Laboratorio Personal de IA y Herramienta de Productividad</b></p>
+  
+  [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://uranoai.com)
+  [![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](https://uranoai.com)
+</div>
 
 ---
 
-## 🧠 Capacidades Avanzadas
+Bienvenido a la nueva era de la productividad con **Urano Desktop**. Esta aplicación no es solo un chat, es un ecosistema completo diseñado para brindarte el control total sobre agentes de inteligencia artificial inteligentes, modulares y, sobre todo, capaces de actuar sobre tu entorno real.
 
-### 1. Visión y Control de Escritorio (SystemEye)
-Tus agentes ahora tienen "ojos". Gracias al módulo **SystemEye**, Urano puede interactuar con cualquier aplicación de tu PC, incluso aquellas que no tienen una API (como navegadores específicos, software antiguo o apps de diseño).
-- **Visión en Tiempo Real**: El agente toma capturas de pantalla para entender qué está pasando.
-- **Interacción Periférica**: Puede mover el ratón, hacer clic en botones y escribir texto por ti.
-- **Seguridad**: Tú supervisas cada paso. El agente siempre "mira" antes de actuar para asegurar la precisión.
-
-### 2. El Multiverso de Agentes (MultiTabs)
-Ya no estás limitado a una sola conversación. Urano permite la **orquestación paralela**:
-- **Pestañas Independientes**: Crea ventanas de chat para diferentes tareas (ej. una analizando datos, otra investigando en la web y otra escribiendo código).
-- **Sub-Agentes Especializados**: El agente maestro puede delegar tareas a "minions" en otras pestañas.
-- **Gestión de Ventanas**: Organiza tus agentes en rejilla, minimízalos o mézclalos con tu flujo de trabajo principal.
-
-### 3. Interfaz Dinámica e Interactiva
-Urano ya no solo responde con texto plano. Tus agentes pueden **generar aplicaciones completas** para ti:
-- **Dashboards Personalizados**: El agente puede mostrarte tablas de datos, gráficos de KPI y barras de progreso en tiempo real.
-- **Human-in-the-Loop**: Para acciones críticas (como borrar archivos o enviar correos masivos), el agente te presentará un **Panel de Confirmación** interactivo. Nada ocurre sin tu visto bueno.
+Urano es tanto una **herramienta de productividad personal** lista para usarse, como un **laboratorio avanzado de IA** con su propia UI, sistema de orquestación y comunidad de plugins.
 
 ---
 
-## 🧠 Personalización y Módulos MCP
+## 📥 Comienza en 3 Pasos
 
-### Configuración de Agentes
-En el Dashboard, puedes definir la "Persona" de cada agente (ej. "Experto en Redes Sociales" o "Auditor de Seguridad") y elegir el motor de IA (nube u **Ollama** local).
+Instalar y empezar a trabajar con tus propios asistentes es increíblemente sencillo:
 
-### Ecosistema MCP (Model Context Protocol)
-Conecta Urano con tus herramientas favoritas:
-- **Google Workspace**: Calendar, Drive, Gmail, Docs y Sheets.
-- **Productividad**: Slack, Jira, Notion, GitHub y Microsoft 365.
-- **Búsqueda Avanzada**: Brave Search, Tavily y Serper para investigación técnica.
-- **Seguridad (Vault)**: Tus credenciales se guardan y cifran localmente en una bóveda segura.
+1. **Descarga e Instala**: Disponible nativamente para **Windows y macOS**. Visita [uranoai.com](https://uranoai.com).
+2. **Conecta tu IA favorita**: Soporte nativo para **12 proveedores de IA** (OpenAI, Anthropic, Google, DeepSeek, xAI, Ollama local, Alibaba, Moonshot, y más). ¡Solo pon tu API Key y listo!
+3. **Crea tu Agente**: Asigna una personalidad, activa las integraciones que necesites y empieza a delegar tareas.
 
 ---
 
-## 📚 Protocolos y Skills (Conocimiento Especializado)
+## 🌟 Características Nativas y Capacidades
 
-A diferencia de un chat convencional, en Urano puedes dotar a tus agentes de **capacidades especializadas** sin necesidad de programar, mediante archivos Markdown (.md).
+Urano vive en tu computadora, respetando tu privacidad y permitiendo que la IA interactúe profundamente con tu entorno de escritorio:
 
-### ¿Para qué sirven las Skills?
-La idea es que un solo agente pueda tener **múltiples Skills** dirigidas a darle capacidades especiales muy detalladas. Por ejemplo, un agente de "Atención al Cliente" puede tener cargadas simultáneamente:
-- **Skill de Ventas**: Con tus protocolos específicos de cierre de tratos.
-- **Skill de Soporte Técnico**: Con el manual de usuario de tus productos.
-- **Skill de Devoluciones**: Con las políticas legales de tu empresa.
-
-### Protocolo "Skill-First"
-Urano implementa una arquitectura donde el agente, antes de usar una herramienta compleja, **lee obligatoriamente** la Skill correspondiente. Esto garantiza una precisión del 100% y evita alucinaciones, ya que el agente siempre consulta su "manual de experto" antes de actuar sobre tu sistema.
+- 👁️ **Visión y Control (SystemEye)**: Tus agentes pueden "ver" tu pantalla mediante capturas, y controlar tu ratón y teclado de forma supervisada.
+- 💬 **Burbuja Flotante (MiniChat)**: Mantén a tu asistente siempre a mano sobre cualquier ventana de tu computadora.
+- ⚡ **Notificaciones OS Nativas**: Los agentes trabajan en segundo plano y te envían notificaciones push de escritorio cuando terminan un reporte o tarea. ¡Haz clic en la notificación para volver directamente al chat!
+- 🔄 **Multiverso de Agentes (MultiTabs)**: Múltiples chats paralelos. Un agente de programación en una pestaña puede delegar búsquedas web a un agente investigador en otra pestaña simultáneamente.
+- 📊 **UI Dinámica Interactiva**: Los agentes pueden generar miniapplicaciones en tiempo real (dashboards, gráficas, paneles de control) en lugar de solo escupir texto.
 
 ---
 
-## 🖥️ Navegación por la Interfaz
+## 🔌 Ecosistema de Plugins: Urano Marketplace
 
-- **🏠 Dashboard**: Resumen de tus agentes activos y estado de tus integraciones.
-- **💬 Chat Inteligente**: El corazón de la app. Desde aquí lanzas agentes, visualizas la UI dinámica y supervisas el "Modo Pensamiento".
-- **📂 Gestión de Sesiones**: Accede rápidamente a tus chats anteriores y restaura contextos de trabajo completos.
+¡Extiende las capacidades de tus agentes con un solo clic!
+
+Urano incluye un **Marketplace descentralizado** de módulos MCP (Model Context Protocol). A través de él, puedes instalar conectores para que tus agentes operen con:
+- **Google Workspace** (Docs, Sheets, Drive, Calendar, Gmail)
+- **Desarrollo** (GitHub, Terminal local, Búsqueda de Archivos)
+- **Investigación** (Brave Search, Tavily, Serper)
+- **Productividad** (Slack, Jira, Notion)
+
+**Actualizaciones a 1-Clic**: El sistema de Urano revisa constantemente el registro global de la comunidad y te notifica si hay actualizaciones disponibles para tus plugins instalados. Todo se gestiona en una bóveda local cifrada (Vault) para mantener tus contraseñas y tokens seguros en tu máquina.
 
 ---
 
-## 👨💻 Para Desarrolladores
-Si quieres crear tus propios módulos MCP o extender la lógica de Urano, consulta:
+## 👨💻 Para Desarrolladores: Únete a la Comunidad
 
-👉 **[Guía para Desarrolladores (CREATE_MCP_GUIDE.md)](./CREATE_MCP_GUIDE.md)**
+Urano Project es un ecosistema abierto. Si sabes JavaScript/TypeScript, puedes crear tus propios módulos MCP para dotar a los agentes de capacidades infinitas y publicarlos en la tienda oficial.
+
+Contamos con un **Live Dev Mode** que te permite probar tu código en tiempo real con recarga en caliente (*Hot-Reloading*) sin necesidad de compilar la aplicación principal.
+
+Revisa nuestras guías oficiales:
+
+👉 **[Guía Pública de Publicación (Cómo subir al Marketplace)](./PUBLIC_DEV_GUIDE.md)**
+👉 **[Guía Completa de Desarrollo MCP (Arquitectura, Audio y UI)](./CREATE_MCP_GUIDE.md)**
 
 ---
 
 > [!TIP]
-> **Modo Multiverso:** Haz clic en el icono `+` de la barra de pestañas para abrir un selector de agentes rápido. ¡Puedes tener hasta 6 sub-procesos trabajando simultáneamente para ti!
+> **El Protocolo "Skill-First":** En Urano, los agentes no alucinan al usar herramientas. Cada plugin está respaldado por un archivo `SKILL.md` que el agente lee obligatoriamente antes de ejecutar una acción, actuando como el "manual de usuario" estricto para la IA.
