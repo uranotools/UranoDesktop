@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://uranoai.com/assets/images/logo.png" alt="Urano Logo" width="120" />
+  <img src="banner.png" alt="Urano Logo" width="120" />
   <h1>Urano Desktop</h1>
   <p><b>Tu Laboratorio Personal de IA y Herramienta de Productividad</b></p>
   
