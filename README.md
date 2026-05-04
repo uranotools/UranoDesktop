@@ -1,4 +1,5 @@
 <div align="center">
+  <p><b>English Version: <a href="./README.en.md">README.en.md</a></b></p>
   <img src="banner.png" alt="Urano Logo" width="100%" />
   <h1>Urano Desktop</h1>
   <p><b>Tu Laboratorio Personal de IA y Herramienta de Productividad</b></p>
