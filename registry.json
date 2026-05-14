@@ -1,6 +1,23 @@
 {
     "schemaVersion": 1,
-    "updatedAt": "2026-05-04T00:00:00Z",
+    "updatedAt": "2026-05-14T00:00:00Z",
     "registryUrl": "https://raw.githubusercontent.com/uranotools/UranoDesktop/main/registry.json",
-    "plugins": []
+    "plugins": [
+        {
+            "id": "XSocialNetwork",
+            "name": "X Social Network",
+            "author": "Urano Tools",
+            "description": "Plugin para integración con la red social X (Twitter).",
+            "version": "1.0.0",
+            "category": "Social",
+            "icon": "Twitter",
+            "tags": [
+                "social",
+                "x",
+                "twitter"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/x-socialnetwork/main/UranoXSocialNetwork.zip",
+            "verified": true
+        }
+    ]
 }
