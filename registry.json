@@ -6,6 +6,7 @@
         {
             "id": "XSocialNetwork",
             "name": "X Social Network",
+            "origin": "https://github.com/uranotools/x-socialnetwork",
             "author": "Urano Tools",
             "description": "Plugin para integración con la red social X (Twitter).",
             "version": "1.0.0",
