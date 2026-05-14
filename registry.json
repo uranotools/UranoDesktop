@@ -19,6 +19,38 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/x-socialnetwork/main/UranoXSocialNetwork.zip",
             "verified": true
+        },
+        {
+            "id": "LinkedInSocialNetwork",
+            "name": "LinkedIn Social Network",
+            "origin": "https://github.com/uranotools/linkedin-socialnetwork",
+            "author": "Urano Tools",
+            "description": "Plugin para integración con la red social LinkedIn.",
+            "version": "1.0.0",
+            "category": "Social",
+            "icon": "LinkedIn",
+            "tags": [
+                "social",
+                "linkedin"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/linkedin-socialnetwork/main/urano-linkedin-socialnetwork.zip",
+            "verified": true
+        },
+        {
+            "id": "RedditSocialNetwork",
+            "name": "Reddit Social Network",
+            "origin": "https://github.com/uranotools/reddit-socialnetwork",
+            "author": "Urano Tools",
+            "description": "Plugin para integración con la red social Reddit.",
+            "version": "1.0.0",
+            "category": "Social",
+            "icon": "Reddit",
+            "tags": [
+                "social",
+                "reddit"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/reddit-socialnetwork/main/UranoRedditSocialNetwork.zip",
+            "verified": true
         }
     ]
 }
