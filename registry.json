@@ -10,6 +10,7 @@
             "author": "Urano Tools",
             "description": "Plugin para integración con la red social X (Twitter).",
             "version": "1.0.0",
+            "inCloud": true,
             "category": "Social",
             "icon": "Twitter",
             "tags": [
@@ -27,6 +28,7 @@
             "author": "Urano Tools",
             "description": "Plugin para integración con la red social LinkedIn.",
             "version": "1.0.0",
+            "inCloud": true,
             "category": "Social",
             "icon": "LinkedIn",
             "tags": [
@@ -43,6 +45,7 @@
             "author": "Urano Tools",
             "description": "Plugin para integración con la red social Reddit.",
             "version": "1.0.0",
+            "inCloud": true,
             "category": "Social",
             "icon": "Reddit",
             "tags": [
@@ -50,6 +53,40 @@
                 "reddit"
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/reddit-socialnetwork/main/UranoRedditSocialNetwork.zip",
+            "verified": true
+        },
+        {
+            "id": "urano-cloud-sync",
+            "name": "Urano Cloud Sync",
+            "origin": "https://github.com/uranotools/urano-cloud-sync",
+            "author": "Urano Tools",
+            "description": "Este plugin actúa como un puente inteligente y seguro entre tus chats omnicanal (WhatsApp, Telegram, Webchat) y tus buckets de almacenamiento en la nube compatibles con S3 (como Cloudflare R2, AWS S3 o MinIO), optimizando la memoria y costes de inferencia del LLM en tiempo real.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Almacenamiento",
+            "icon": "Urano",
+            "tags": [
+                "cloud",
+                "sync"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/urano-cloud-sync/main/urano-cloud-sync.zip",
+            "verified": true
+        },
+        {
+            "id": "UranoSafetyFirewall",
+            "name": "Urano Safety Firewall",
+            "origin": "https://github.com/uranotools/UranoSafetyFirewall",
+            "author": "Urano Tools",
+            "description": "Este plugin actúa como un Firewall Cognitivo y Escudo de Inyección de Prompts en tiempo real. Monitorea y analiza heurísticamente los mensajes entrantes.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Seguridad",
+            "icon": "Urano",
+            "tags": [
+                "seguridad",
+                "firewall"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/UranoSafetyFirewall/main/urano-safety-firewall.zip",
             "verified": true
         }
     ]

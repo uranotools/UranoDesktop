@@ -1,112 +1,117 @@
-<div align="center">
-  <p><b>Spanish Version: <a href="./CREATE_MCP_GUIDE.md">CREATE_MCP_GUIDE.md</a></b></p>
-</div>
+# Urano MCP - Guía de Creación e Instalación
 
-# Urano MCP - Creation and Installation Guide
-
-This technical guide is aimed at developers who wish to create and integrate external **MCP (Model Context Protocol) Packages** into the Urano Agent architecture. Here you will learn from basic concepts to advanced configurations for exposing dynamic or static tools and defining specialized contexts (`Skills`).
+Esta guía técnica está orientada a desarrolladores que deseen crear e integrar **Paquetes MCP (Model Context Protocol)** externos en la arquitectura de Agentes de Urano. Aquí aprenderás desde el concepto básico hasta configuraciones avanzadas para exponer herramientas dinámicas o estáticas y definir contextos (`Skills`) especializados.
 
 ---
 
-## Index
+## Índice
 1. [Quick Start](#1-quick-start)
-2. [MCP Project Structure](#2-mcp-project-structure)
-3. [The `config.ts` File (Core Manifest)](#3-the-configts-file-core-manifest)
-4. [Adding Logic to Plugins](#4-adding-logic-to-plugins)
-5. [Injecting Context with `SKILL.md`](#5-injecting-context-with-skillmd)
-6. [Packaging and Distribution (.zip)](#6-packaging-and-distribution-zip)
+2. [Estructura del Proyecto MCP](#2-estructura-del-proyecto-mcp)
+3. [El Archivo `config.ts` (Core Manifest)](#3-el-archivo-configts-core-manifest)
+4. [Añadiendo Lógica a los Plugins](#4-añadiendo-lógica-a-los-plugins)
+5. [Inyectando Contexto con `SKILL.md`](#5-inyectando-contexto-con-skillmd)
+6. [Empaquetado y Distribución (.zip)](#6-empaquetado-y-distribución-zip)
+7. [🎨 API Nativa de Renderizado UI y Badges](#7--api-nativa-de-renderizado-ui-y-badges)
 
 ---
+
 
 ## 1. Quick Start
 
-To get started immediately, here is all you need to do to create and install your first MCP called "HelloWorld":
+Para arrancar de inmediato, esto es lo único que necesitas hacer para crear e instalar tu primer MCP llamado "HelloWorld":
 
-1. Create a local folder called `HelloWorld`.
-2. Inside that folder, create the `config.ts` file:
+1. Crea una carpeta local llamada `HelloWorld`.
+2. Dentro de esa carpeta, crea el archivo `config.ts`:
 ```typescript
 export const HelloWorldConfig = {
     name: "HelloWorld",
-    description: "My first trial MCP module",
+    description: "Mi primer módulo MCP de prueba",
     icon: "Rocket",
-    category: "Development",
+    category: "Desarrollo",
+    enabledPlugins: ['NombrePlugin'],
     pluginSchemas: {
         Tests: {
             actions: {
-                ping: { label: 'Greet API', fields: [] }
+                ping: { label: 'Saludar API', fields: [] }
             }
         }
     }
 }
 ```
-3. Create the plugin path `Plugins/Tests/TestsPlugin.ts`:
+3. Crea la ruta de plugin `Plugins/Tests/TestsPlugin.ts`:
 ```typescript
 export class TestsPlugin {
     async executeAction(action: string, data: any) {
-        if (action === 'ping') return "Pong! Hello from MCP";
+        if (action === 'ping') return "Pong! Hola desde MCP";
         throw new Error("Action not found");
     }
 }
 ```
-4. Compress the interior of the folder on disk as `HelloWorld.zip`.
-5. Go to **Urano (Desktop or UI) > Integrations / MCP Manager**.
-6. Click on **Install MCP (.zip)**, upload your file, and that's it! Agents with permissions will automatically be able to see and use your new tool `urano_helloworld_tests_ping`.
+4. Comprime el interior de la carpeta en disco como `HelloWorld.zip`.
+5. Ve a **Urano (Desktop o UI) > Integraciones / MCP Manager**.
+6. Haz clic en **Instalar MCP (.zip)**, sube tu archivo, y ¡listo! Los agentes con permisos podrán automáticamente ver y utilizar tu nueva herramienta `urano_helloworld_tests_ping`.
 
 ---
 
-## 2. MCP Project Structure
+## 2. Estructura del Proyecto MCP
 
-A well-structured MCP package consists of central configurations, execution code, and contextual documentation. When you install a ZIP in Urano, the system extracts everything into the isolated vault `~/.urano/workspace/mcp/{ModuleName}/`.
+Un paquete MCP bien estructurado consta de configuraciones centrales, código de ejecución y documentación contextual. Cuando instalas un ZIP en Urano, el sistema extrae todo hacia la bóveda aislada `~/.urano/workspace/mcp/{ModuleName}/`.
 
 ```text
-📁 MyMCPModule/
-├── 📄 config.ts                 <-- (Required) Manifest and environment schemas
-├── 📄 package.json              <-- (Optional) Defines own dependencies if required
-├── 📄 SKILL.md                  <-- (Recommended) Serves as an injectable System Prompt (`type: mcp`)
+📁 MiModuloMCP/
+├── 📄 config.ts                 <-- (Requerido) Manifiesto y esquemas de entorno
+├── 📄 package.json              <-- (Opcional) Define dependencias propias si se requieren
+├── 📄 SKILL.md                  <-- (Recomendado) Sirve de System Prompt inyectable (`type: mcp`)
 └── 📁 Plugins/
     └── 📁 {PluginName}/
-        └── 📄 {PluginName}Plugin.ts  <-- Execution class that resolves actions declared in config
+        └── 📄 {PluginName}Plugin.ts  <-- Clase ejecutora que resuelve las acciones declaradas en config
 ```
 
 ---
 
-## 3. The `config.ts` File (Core Manifest)
+## 3. El Archivo `config.ts` (Core Manifest)
 
-Your `config.ts` is the brain of the environment. Urano reads this file to render graphical interfaces and configure the password Vault transparently.
+Tu `config.ts` es el cerebro del entorno. Urano lee este archivo para renderizar las interfaces gráficas y configurar la Bóveda de contraseñas de forma transparente.
 
-### Advanced Anatomy
+### Anatomía Avanzada
 
 ```typescript
 export const SlackConfig = {
     name: "SlackIntegration",
-    description: "Connect to Slack directly in the business workspace",
+    description: "Conecta a Slack directamente en el workspace comercial",
     icon: "MessageSquare",
-    category: "Communications",
+    category: "Comunicaciones",
 
-    // 1. Environment Options (Vault / Visual UI)
+    // Delimitación de Entorno (Opcional)
+    inCloud: true,      // Si se define como false, el módulo se ignora en la Nube (Desktop-Only)
+    inDesktop: true,    // Si se define como false, el módulo se ignora en el Escritorio (Cloud-Only)
+    // cloudOnly: false,// Alternativa: si es true, equivale a inDesktop: false
+
+    // 1. Opciones de Entorno (Bóveda / UI visual)
     settings: [
         { name: 'SLACK_TOKEN', type: 'password', title: 'Bot OAuth Token' },
-        { name: 'DEFAULT_CHANNEL', type: 'text', title: 'Default Channel (e.g., #general)' },
+        // perAgent: true habilita que cada agente pueda sobreescribir este ajuste individualmente en su panel de configuración.
+        { name: 'DEFAULT_CHANNEL', type: 'text', title: 'Canal Default (Ej: #general)', perAgent: true },
     ],
 
-    // 2. Native MCP Server Connectors (Optional)
-    // If your module is a wrapper for an open-source MCP module:
+    // 2. Conectores Nativos MCP Server (Opcional)
+    // Si tu módulo es un wrapper de un módulo MCP open source:
     mcpServer: {
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-slack'],
         requiredEnv: ['SLACK_TOKEN']
     },
 
-    // 3. Explicit Declaration of Tool Schemas
+    // 3. Declaración Explicita de Esquemas de Herramientas
     pluginSchemas: {
         Chat: {
             actions: {
                 sendMessage: {
-                    label: 'Send Message',
+                    label: 'Enviar Mensaje',
                     fields: [
-                        { name: 'channel', type: 'required', label: 'Channel ID' },
-                        { name: 'text', type: 'required', label: 'Message body' },
-                        { name: 'attachmentFolder', type: 'dir', label: 'Attachments Folder' },
+                        { name: 'channel', type: 'required', label: 'ID Canal' },
+                        { name: 'text', type: 'required', label: 'Cuerpo del mensaje' },
+                        { name: 'attachmentFolder', type: 'dir', label: 'Carpeta de Adjuntos' },
                     ]
                 }
             }
@@ -115,65 +120,193 @@ export const SlackConfig = {
 };
 ```
 
-### Field Types in `fields`
-Urano Front automatically renders forms based on the `type` attribute:
-- `required`: Mandatory text field.
-- `text`: Optional text field.
-- `password`: Hidden field (Vault).
-- `dir`: **(Urano >= 1.3.5)** Native Windows directory selector.
-- `select`: Dropdown menu (requires `options: [{ label, value }]` attribute).
-- `prompt`: Multi-line text area for instruction blocks.
+### Tipos de Campos en `fields`
+Urano Front renderiza automáticamente los formularios basándose en el atributo `type`:
+- `required`: Campo de texto obligatorio.
+- `text`: Campo de texto opcional.
+- `password`: Campo oculto (Bóveda).
+- `dir`: **(Urano >= 1.3.5)** Selector de directorios nativo de Windows.
+- `select`: Menú desplegable (requiere atributo `options: [{ label, value }]`).
+- `prompt`: Área de texto multilínea para bloques de instrucciones.
+- `iframe_picker`: **(Urano >= 1.5.5)** Selector interactivo de archivos/carpetas o vistas controladas (Google Drive, OneDrive, formularios propios, etc.). Soporta ejecución de SDKs en cliente (`onLaunch`), carga de IFrames (`iframeUrl`) y callbacks normalizadores (`callback`).
 
-> **SECURITY NOTE:** All variable fields stipulated in `settings` feed Urano's local cryptographic engine. Agents never see static tokens in their contexts.
+> **NOTA SOBRE SEGURIDAD:** Todos los campos variables estipulados en `settings` alimentan el motor criptográfico local de Urano. Los agentes jamas ven los tokens estáticos en sus contextos.
+
+### Bóveda de Ajustes por Agente (Per-Agent Settings Vault)
+**Urano >= 1.5.0** introduce la capacidad de sobreescribir valores de `settings` de manera individual por cada agente. 
+
+Si deseas que un parámetro (como un modo de seguridad, un canal por defecto o una ruta local) sea configurable por cada agente, añade `perAgent: true` a su especificación de setting:
+* **UI automática:** El panel de configuración de agente (`AgentConfigPanel` / `CloudAgentConfigPanel`) detectará el flag y mostrará un mini-formulario de override inline debajo de la tarjeta del MCP cuando el agente tenga activada esa integración.
+* **Fallback global:** Si un agente no configura un valor personalizado en su panel, el motor utilizará automáticamente el valor global configurado en el Vault Manager como fallback.
+* **Campos soportados:** El flag `perAgent: true` puede aplicarse a **cualquier tipo de campo** soportado en los formularios de Urano (`FieldRenderer.tsx`), incluyendo `text`, `number`, `money`, `textarea`, `email`, `checkbox`, `switch`, `select`, `date`, `color`, `directory`, `code`, `counter`, e `iframe_picker`. Por razones lógicas de seguridad, los únicos campos excluidos son los de tipo `password` (como API keys globales), los cuales **no** pueden ser sobreescritos individualmente por agente y siempre se resolverán globalmente desde la bóveda segura.
 
 ---
 
-## 4. Adding Logic to Plugins
+### Selectores Interactivos e IFrame Pickers (`iframe_picker`)
+**Urano >= 1.5.5** introduce soporte para selectores interactivos universales. Esto permite a los desarrolladores de plugins MCP integrar de forma directa herramientas visuales avanzadas de selección (como exploradores de Google Drive, OneDrive, Dropbox o formularios de control propios) de forma 100% nativa.
 
-The tools structured in `config.ts` under the `pluginSchemas` key expect a counterpart class under the tree `Plugins/{Name}/{Name}Plugin.ts`. 
+El plugin puede definir este ajuste interactivo en su `config.ts` de dos formas distintas:
 
-For the previous schema (`Chat`), you would need to create `Plugins/Chat/ChatPlugin.ts`:
+#### A. Integración Nativa de SDKs en Navegador (`onLaunch`)
+Recomendado cuando la API/Servicio ofrece un SDK de javascript cargable en cliente (como Google Drive Picker). No necesitas hospedar ni programar ninguna página web: defines la función de inicialización directamente en el setting.
+
+```typescript
+{
+    name: 'SYNC_FOLDER_DATA',
+    type: 'iframe_picker',
+    title: '📂 Carpeta de Google Drive',
+    description: 'Selecciona la carpeta de Drive para lectura del Agente.',
+    placeholder: 'Ninguna carpeta seleccionada',
+    perAgent: true, // Habilita override específico por Agente
+
+    // Se ejecuta al hacer clic en "Examinar" en la interfaz
+    onLaunch: async (currentValue: any, resolve: (rawResult: any) => void, sdk: any) => {
+        try {
+            // 1. Recuperamos de forma segura credenciales guardadas en el Vault de este mismo plugin
+            const clientId = await sdk.getSecret('GOOGLE_CLIENT_ID');
+            
+            // 2. Cargamos dinámicamente scripts oficiales evitando bloqueos de CORS
+            await sdk.loadScript('https://apis.google.com/js/api.js');
+            await sdk.loadScript('https://accounts.google.com/gsi/client');
+            
+            // 3. Inicializamos e invocamos el SDK interactivo
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/drive.readonly',
+                callback: (tokenRes) => {
+                    const picker = new google.picker.PickerBuilder()
+                        .addView(google.picker.ViewId.FOLDERS)
+                        .setOAuthToken(tokenRes.access_token)
+                        .setCallback((data) => {
+                            if (data.action === google.picker.Action.PICKED) {
+                                // 4. Retornamos el resultado de vuelta a Urano
+                                resolve(data);
+                            }
+                        })
+                        .build();
+                    picker.setVisible(true);
+                }
+            });
+            tokenClient.requestAccessToken();
+        } catch (err) {
+            sdk.showError("Error al iniciar el selector de Google: " + err.message);
+        }
+    },
+
+    // Callback normalizador: toma la respuesta cruda y extrae la estructura a almacenar
+    callback: (rawPayload: any) => {
+        if (rawPayload && rawPayload.docs) {
+            const normalized = rawPayload.docs.map((doc: any) => ({
+                id: doc.id,
+                name: doc.name,
+                url: doc.url
+            }));
+            return { success: true, data: normalized };
+        }
+        return { success: false, error: 'Formato inválido' };
+    }
+}
+```
+
+#### B. Integración vía IFrame Web (`iframeUrl`)
+Útil cuando ya tienes una página o portal interactivo administrado y deseas incrustarlo directamente en un iframe sandboxed dentro de la modal de Urano.
+
+```typescript
+{
+    name: 'CUSTOM_SELECTOR',
+    type: 'iframe_picker',
+    title: '🌐 Selector de CRM',
+    iframeUrl: '/module/MyCRM/settings/picker', // Ruta de tu vista
+    iframeHeight: '380px',
+    callback: (data: any) => {
+        return { success: true, data };
+    }
+}
+```
+* **Bridge Contextual automático:** El iframe cargado en pantalla se cargará enriquecido con query params del entorno (`?token=...&theme=dark&platform=desktop`).
+* **Protocolo de Selección:** Tu IFrame simplemente debe notificar al parent cuando el usuario elija un elemento usando `postMessage`:
+  ```javascript
+  window.parent.postMessage({ type: 'urano_config_select', value: rawSelectedData }, '*');
+  ```
+
+#### El Objeto `sdk` inyectado en `onLaunch`
+* `sdk.allValues`: Objeto JSON con los valores en tiempo real del formulario actual.
+* `sdk.loadScript(url: string): Promise<void>`: Carga y cachea de forma segura scripts en el navegador.
+* `sdk.openPopup(url: string, title?: string, w?: number, h?: number): Window`: Abre ventanas emergentes de forma segura para autenticaciones OAuth.
+* `sdk.getSecret(key: string): Promise<string | null>`: Recupera de forma **encriptada y aislada** secretos guardados en el Vault para este módulo (Bypass seguro local/cloud).
+* `sdk.showError(message: string): void`: Despliega un banner rojo de error en los ajustes del formulario.
+
+---
+
+## 4. Añadiendo Lógica a los Plugins
+
+Las herramientas estructuradas en el `config.ts` bajo la clave `pluginSchemas` esperan que haya una clase homóloga bajo el árbol `Plugins/{Name}/{Name}Plugin.ts`. 
+
+Para el schema anterior (`Chat`), necesitarías crear `Plugins/Chat/ChatPlugin.ts`:
 
 ```typescript
 export class ChatPlugin {
     private configStore: any;
 
-    constructor(moduleConfigCompiledByUrano: any) {
-        // In this step, Urano will inject decrypted vault keys in real-time
-        this.configStore = moduleConfigCompiledByUrano; 
+    constructor(moduleConfigRecopiladoPorUrano: any) {
+        // En este paso, Urano inyectará en tiempo real desencriptado las keys de la boda
+        this.configStore = moduleConfigRecopiladoPorUrano; 
     }
 
     async executeAction(action: string, payload: any) {
         if (action === 'sendMessage') {
             const { channel, text } = payload;
-            // ... Execute fetch or local logic here ...
+            // ... Aquí ejecuta fetch o lógica local ...
             return { sent: true, timestamp: Date.now() };
         }
-        throw new Error(`Action ${action} not supported in the Chat plugin`);
+        throw new Error(`Acción ${action} no soportada en el plugin de Chat`);
     }
 }
 ```
 
-Urano will dynamically link the bridge and create an official schema in OpenAI Functions format called `urano_slackintegration_chat_sendmessage`.
+Urano enlazará el puente dinámicamente y creará un schema oficial en formato OpenAI Functions llamado `urano_slackintegration_chat_sendmessage`.
+
+### 🪄 Variables de Contexto Inyectadas (La Magia del Core)
+
+Al declarar tus herramientas en el `config.ts`, **NUNCA** debes pedirle al agente (LLM) que adivine el ID de la sesión (`sessionId`) o el ID del usuario. Esto genera alucinaciones y consume tokens innecesarios.
+
+El motor de ejecución de Urano (`McpTool.ts`) intercepta secretamente todas las peticiones justo antes de ejecutar tu método, y le **inyecta parámetros adicionales** garantizados al objeto `payload`:
+
+- `_sessionId`: El UUID exacto de la sesión de chat actual.
+- `_parentSessionId`: Si el plugin fue invocado desde una pestaña secundaria o sub-agente, este es el ID de la sesión madre.
+- `_userId`: El identificador del usuario local actual.
+
+**Ejemplo de uso correcto:**
+```typescript
+async executeAction(action: string, payload: any) {
+    // ❌ INCORRECTO: Obliga al LLM a inventar un ID (propenso a fallos)
+    // const sid = payload.sessionId; 
+    
+    // ✅ CORRECTO: Extraído directamente del motor, garantizado 100%
+    const sid = payload._sessionId; 
+    
+    if (action === 'sendMessage') {
+        // ...
+```
 
 > [!NOTE]
-> **Name Resolution (Urano >= 1.3.5):** The system now resolves the module name in a **case-insensitive** manner by scanning the file system. This means that if your folder is `SlackIntegration`, calls directed to `slackintegration` will work correctly.
+> **Resolución de Nombres (Urano >= 1.3.5):** El sistema ahora resuelve el nombre del módulo de forma **insensible a mayúsculas** (`case-insensitive`) escaneando el sistema de archivos. Esto significa que si tu carpeta es `SlackIntegration`, las llamadas dirigidas a `slackintegration` funcionarán correctamente.
 ```typescript
     async executeAction(action: string, payload: any) {
         if (action === 'capture') {
-            const rawBuffer = await myCaptureLibrary();
+            const rawBuffer = await miLibreriaDeCaptura();
             
-            // Pattern A: Mixed Multimodal Message (Urano >= 1.2.5)
-            // Useful for explicitly returning text + image.
+            // Patrón A: Mensaje Multimodal Mixto (Urano >= 1.2.5)
+            // Útil para retornar texto + imagen de forma explícita.
             // return [
-            //    { type: 'text', text: 'Here is the capture:' },
+            //    { type: 'text', text: 'Aquí tienes la captura:' },
             //    { type: 'image', image: rawBuffer.toString('base64'), mimeType: 'image/png' }
             // ];
 
-            // Pattern B: Vision Interception (Recommended Urano >= 1.4.0)
-            // By returning an object with base64 and mimeType, the RuntimeLoop will activate 
-            // automatic interception, moving the image to a user role 
-            // to avoid context bloat.
+            // Patrón B: Vision Interception (Recomendado Urano >= 1.4.0)
+            // Al retornar un objeto con base64 y mimeType, el RuntimeLoop activará 
+            // la intercepción automática, moviendo la imagen a un rol de usuario 
+            // para evitar bloat en el contexto.
             return {
                 path: payload.targetPath,
                 base64: rawBuffer.toString('base64'),
@@ -182,36 +315,36 @@ Urano will dynamically link the bridge and create an official schema in OpenAI F
         }
     }
 ```
-> **What does Urano do with these objects?** To ensure that APIs that do not support vision in tool roles (like OpenAI via OpenRouter) do not collapse memory by treating Base64 as raw text, the **RuntimeLoop** will intercept your response if it contains `base64` and `mimeType`. 
-> 1. It will leave a text mention in the tool log.
-> 2. It will recreate an invisible message under `role: "user"` right below with the actual image. 
-> In this way, the model receives the image 100% natively and securely.
+> **¿Qué hace Urano con estos objetos?** Para garantizar que APIs que no soportan visión en roles de herramientas (como OpenAI vía OpenRouter) no colapsen la memoria al tratar los Base64 como texto crudo, el **RuntimeLoop** interceptará tu respuesta si contiene `base64` y `mimeType`. 
+> 1. Dejará una mención en texto en el log de la herramienta.
+> 2. Recreará un mensaje invisible bajo el `role: "user"` justo abajo con la imagen real. 
+> De esta forma, el modelo recibe la imagen de forma 100% nativa y segura.
 
 ---
 
-## 5. Injecting Badges from your MCP Plugin (Optional)
+## 5. Inyectando Badges desde de tu Plugin MCP (Opcional)
 
-If you develop an MCP tool that launches background processes, opens sub-tabs, or retrieves extensive documents, you may want to offer the user a quick-access click above their text bar. You can inject a universal **SessionBadge**:
+Si desarrollas una herramienta MCP que lanza procesos de fondo, abre sub-pestañas, u obtiene documentos extensos, tal vez desees ofrecer al usuario un clic de acceso rápido arriba de su barra de texto. Puedes inyectar un **SessionBadge** universal:
 
 ```typescript
-// From your MyPlugin.ts file
-public async apiExecuteTask(payload: any) {
-    // [IMPORTANT] Avoid importing @core directly in external/workspace plugins
-    // as path aliases do not resolve outside the compiled Urano environment.
-    // Instead, use the capability injected by the system in this.config._callPlugin.
+// Desde tu archivo MyPlugin.ts
+public async apiEjecutarTarea(payload: any) {
+    // [IMPORTANTE] Evita importar @core directamente en plugins externos/workspace
+    // ya que los alias de ruta no se resuelven fuera del entorno compilado de Urano.
+    // En su lugar, usa la capacidad inyectada por el sistema en this.config._callPlugin.
 
     await this.config._callPlugin(
-        'Core',              // Target module
-        'SessionManager',    // Or the abstraction you need
-        'updateBadge',       // Specific action
+        'Core',              // Módulo destino
+        'SessionManager',    // O la abstracción que necesites
+        'updateBadge',       // Acción específica
         {
             sessionId: payload.sessionId,
             badge: {
-                id: 'my-report',
-                label: 'Open Generated Report',
+                id: 'mi-reporte',
+                label: 'Abrir Reporte Generado',
                 icon: '📊',
                 color: 'success',
-                actionRoute: '/module/MyPlugin/plugins/Report/apiOpenReport',
+                actionRoute: '/module/MyPlugin/plugins/Report/apiAbrirReporte',
                 actionData: { reportId: '123' }
             }
         }
@@ -221,158 +354,187 @@ public async apiExecuteTask(payload: any) {
 }
 ```
 
-Urano Front will paint your badge using the indicated color palette and trigger the IPC Request to your provided endpoint transparently.
+Urano Front pintará tu badge usando la paleta de colores indicada, y desencadenará el IPC Request a tu endpoint proporcionado de manera transparente.
 
-### Handling the Action in your Plugin
+### Manejando la Acción en tu Plugin
 
-For the badge to be functional, your Plugin class must implement the method you defined in `actionRoute`. If your route is `/module/MyPlugin/plugins/Report/apiOpenReport`, your plugin must have the method `apiOpenReport`:
+Para que el badge sea funcional, tu clase de Plugin debe implementar el método que definiste en `actionRoute`. Si tu ruta es `/module/MyPlugin/plugins/Report/apiAbrirReporte`, tu plugin debe tener el método `apiAbrirReporte`:
 
 ```typescript
-// In src/main/Modules/MyPlugin/Plugins/Report/ReportPlugin.ts
+// En src/main/Modules/MyPlugin/Plugins/Report/ReportPlugin.ts
 export class ReportPlugin extends PluginBase {
     
-    // This method is invoked when the user clicks on the Badge
-    async apiOpenReport(payload: { reportId: string }) {
-        console.log("The user requested to open the report:", payload.reportId);
+    // Este método se invoca cuando el usuario hace clic en el Badge
+    async apiAbrirReporte(payload: { reportId: string }) {
+        console.log("El usuario pidió abrir el reporte:", payload.reportId);
         
-        // Here you can launch processes, open local files, or
-        // even inject a new message into the chat.
+        // Aquí puedes lanzar procesos, abrir archivos locales, o
+        // incluso inyectar un mensaje nuevo en el chat.
         return { success: true };
     }
 }
 ```
 
 > [!TIP]
-> **About Imports**: Note that we use `await import(...)` to load `CoreFactory`. This is a **mandatory best practice** in Urano Desktop to avoid "Circular Dependencies" (cyclic import errors) since plugins are loaded at system startup before the Core is 100% initialized.
+> **Sobre los Imports**: Nota que usamos `await import(...)` para cargar `CoreFactory`. Esto es una **buena práctica mandatoria** en Urano Desktop para evitar "Circular Dependencies" (errores de importación cíclica) ya que los plugins se cargan al inicio del sistema antes de que el Core esté 100% inicializado.
 
 ---
 
-## 6. Injecting Context with `SKILL.md`
+## 6. Inyectando Contexto con `SKILL.md`
 
-Loose API tools are not enough if you want to provide the LLM with intelligence on how to use your MCP, or if you want to teach it **specific business policies** when using the module.
+Las herramientas sueltas de API no son suficientes si deseas dotar al LLM de la inteligencia sobre cómo usar tu MCP, o si quieres enseñarle **políticas empresariales específicas** al utilizar el módulo.
 
 ---
 
-### Is `SKILL.md` mandatory? (Urano >= 1.3.5)
-Unlike previous versions, it is **no longer mandatory** to have a valid `SKILL.md` for the module's technical tools to register. If the file is missing or malformed, the agent will still be able to see and execute your actions defined in `config.ts`, but it will lack narrative instructions on *how* and *when* to use them.
+### ¿Es mandatorio el `SKILL.md`? (Urano >= 1.3.5)
+A diferencia de versiones anteriores, **ya no es obligatorio** tener un `SKILL.md` válido para que las herramientas técnicas del módulo se registren. Si el archivo falta o está mal formado, el agente aún podrá ver y ejecutar tus acciones definidas en `config.ts`, pero carecerá de las instrucciones narrativas sobre *cómo* y *cuándo* usarlas.
 
 > [!TIP]
-> **Recommended Use:** Always include a `SKILL.md`. Without it, the agent may hallucinate with parameters or ignore security policies you define.
+> **Uso recomendado:** Siempre incluye un `SKILL.md`. Sin él, el agente puede alucinar con los parámetros o ignorar las políticas de seguridad que definas.
 
-Here is a complete and real example of a `SKILL.md` file (based on Urano's MiniChat module):
+Aquí tienes un ejemplo completo y real de un archivo `SKILL.md` (basado en el módulo MiniChat de Urano):
 
 ```markdown
 ---
 name: MiniChat
-description: Contextual vision capabilities, screen capture, and floating chat control for desktop assistance.
+description: Capacidades de visión contextual, captura de pantalla y control del floating chat para asistencia en escritorio.
 tools: [urano_minichat_capture_get_consent, urano_minichat_capture_set_consent, urano_minichat_capture_capture_screen_with_consent, urano_minichat_tools_open]
 type: mcp
 ---
 
 # Skill: MiniChat Desktop Intelligence
 
-This module gives the agent "eyes" over the user's desktop and the ability to control the floating chat window to offer a proactive and contextual assistance experience.
+Este módulo otorga al agente "ojos" sobre el escritorio del usuario y la capacidad de controlar la ventana de chat flotante para ofrecer una experiencia de asistencia proactiva y contextual.
 
-## Vision Tools (Capture)
+## Herramientas de Visión (Capture)
 
 ### `urano_minichat_capture_capture_screen_with_consent`
-Captures the user's current screen, respecting their privacy settings.
-- **Use**: Fundamental when the user says "Look at this", "What do you think of what I have open?", or when you need visual context to resolve a technical doubt.
-- **Result**: Returns a textual confirmation and a base64 image that is automatically injected into your vision context (if your model supports vision).
+Captura la pantalla actual del usuario, respetando su configuración de privacidad.
+- **Uso**: Fundamental cuando el usuario dice "Mira esto", "¿Qué opinas de lo que tengo abierto?", o cuando necesitas contexto visual para resolver una duda técnica.
+- **Resultado**: Devuelve una confirmación textual y una imagen en base64 que se inyecta automáticamente en tu contexto de visión (si tu modelo soporta visión).
 
-## Usage Protocol
+## Protocolo de Uso
 
-1.  **Contextual Vision**: Whenever the user makes deictic references ("this", "here", "this window"), use `capture_screen_with_consent` to get the visual truth.
-2.  **Privacy**: If the user denies consent, do not insist excessively. Explain why vision would help you be more useful.
+1.  **Visión Contextual**: Siempre que el usuario haga referencias deícticas ("esto", "aquí", "esta ventana"), utiliza `capture_screen_with_consent` para obtener la verdad visual.
+2.  **Privacidad**: Si el usuario deniega el consentimiento, no insistas excesivamente. Explica por qué la visión te ayudaría a ser más útil.
 
 > [!IMPORTANT]
-> When you perform a successful screen capture, the image will NOT appear in the text history as a URL, but will be sent directly to your multimodal architecture. You will be able to "see" it in the next step of the reasoning loop.
+> Cuando realices una captura de pantalla exitosa, la imagen NO aparecerá en el historial de texto como una URL, sino que se enviará directamente a tu arquitectura multimodal. Podrás "verla" en el siguiente paso del loop de razonamiento.
 ```
 
-### Why `type: mcp`?
-Thanks to this tag in the `frontmatter`, Urano's **SkillRegistry** knows that this skill **should not be listed globally** in the universal "Agent Editor" panel, since otherwise, it would saturate the experience of a human editor listing endless irrelevant technical tools (e.g., *postgres databases, git connectors*). The skill remains hidden and available entirely to rehydrate in the background as long as the Agent has explicit *Authorized MCP Modules*.
+### ¿Por qué `type: mcp`?
+Gracias a esta etiqueta en el `frontmatter`, el **SkillRegistry** de Urano sabe que este skill **no debe listarse globalmente** en el panel universal del "Editor de Agentes", dado que de lo contrario, saturaría la experiencia de un editor humano listándole un sin fin de herramientas técnicas irrelevantes (Ej. *bases de datos postgres, conectores git*). El skill permanece escondido y disponible enteramente para rehidratarse de trasfondo siempre y cuando el Agente tenga los *Módulos MCP Autorizados* explícitos.
 
-### 🧠 The Skill-First Protocol (Mandatory)
-Starting with version 1.3.0, Urano Core imposes a `<mcp_protocol>` block of instructions on the Agent. This block prohibits it from using your `urano_*` tools if it has not first executed `urano_read_skill`.
+### 🧠 El Protocolo Skill-First (Mandatorio)
+A partir de la versión 1.3.0, Urano Core impone un bloque de instrucciones `<mcp_protocol>` al Agente. Este bloque le prohíbe usar tus herramientas `urano_*` si no ha ejecutado primero `urano_read_skill`.
 
-**What does this mean for you?**
-- Your `SKILL.md` will **always** be consulted before the agent uses your API.
-- You must include validation rules and clear JSON examples in the `SKILL.md`.
-- You do not need to clutter tool descriptions in `config.ts`, as the full "instruction manual" resides in the skill and will be read on demand.
+**¿Qué significa esto para ti?**
+- Tu `SKILL.md` **siempre** será consultado antes de que el agente use tu API.
+- Debes incluir reglas de validación y ejemplos claros de JSON en el `SKILL.md`.
+- No necesitas saturar las descripciones de las herramientas en `config.ts`, ya que el "manual de instrucciones" completo reside en el skill y será leído bajo demanda.
 
 
 ---
 
-## 6. Development, Packaging, and Distribution (Marketplace)
+## 6. Desarrollo, Empaquetado y Distribución (Marketplace)
 
-Urano implements a robust **Plugin Ecosystem (Marketplace)** and a **Developer Mode (Live Test)**. Gone are the days of manually compiling and uploading ZIPs during the development phase.
+Urano implementa un robusto **Ecosistema de Plugins (Marketplace)** y un **Modo Desarrollador (Live Test)**. Atrás quedaron los días de compilar y subir ZIPs manualmente durante la fase de desarrollo.
 
-### 🛠️ Developer Mode (Dev Mode / Live Test)
+### 🛠️ Modo Desarrollador (Dev Mode / Live Test)
 
-To test your plugin in real-time while writing code, use the **Developer** tab in Urano's **MCP Manager**:
+Para probar tu plugin en tiempo real mientras escribes código, utiliza la pestaña **Desarrollador** en el **MCP Manager** de Urano:
 
-1.  **Link Folder (Symlink):** In the interface, click on "Link Local Folder" and select the root directory of your MCP project (where your `config.ts` is).
-2.  **Hot Reloading:** Urano will create a symbolic link (Junction in Windows) to your vault. A background service (`fs.watch`) will monitor your TypeScript/JavaScript files.
-3.  **Automatic Reload:** When you save a file, Urano will invalidate the Node cache (`require.cache`) and reload your schemas and classes in milliseconds. You will see the `HOT_RELOAD` event in the activity panel.
-4.  **No source code required:** Developers do not need to compile Urano Desktop or have access to its source code to test their plugins natively.
+1.  **Vincular Carpeta (Symlink):** En la interfaz, haz clic en "Vincular Carpeta Local" y selecciona el directorio raíz de tu proyecto MCP (donde está tu `config.ts`).
+2.  **Edición en Caliente (Hot Reload):** Urano creará un enlace simbólico (Junction en Windows) hacia tu bóveda. Un servicio en segundo plano (`fs.watch`) monitorizará tus archivos TypeScript/JavaScript.
+3.  **Recarga Automática:** Cuando guardas un archivo, Urano invalidará el caché de Node (`require.cache`) y recargará tus esquemas y clases en milisegundos. Verás el evento `HOT_RELOAD` en el panel de actividad.
+4.  **Soporte TypeScript Nativo:** Los desarrolladores no necesitan pre-compilar a JavaScript durante el desarrollo. Urano transpilara tus archivos `.ts` al vuelo.
+5.  **No se requiere código fuente:** Los desarrolladores no necesitan compilar Urano Desktop ni tener acceso a su código fuente para probar sus plugins nativamente.
+6.  **Librerías Externas (NPM):** Si tu plugin necesita paquetes externos (ej. `axios`), simplemente abre una terminal en tu carpeta, ejecuta `npm init -y` e instala tus librerías con `npm install`. Durante el Modo Dev, Urano resolverá tu carpeta `node_modules` local automáticamente. Al finalizar, el comando `--bundle` empaquetará estas librerías para el Marketplace.
 
-### 📦 Construction and Bundling (esbuild)
+### 📦 Construcción y Bundling (esbuild)
 
-Installing entire `node_modules` folders directly inside a final file is not scalable, provides little protection for your intellectual property, and generates path limit issues (MAX_PATH on Windows).
+Instalar carpetas enteras de `node_modules` directamente dentro de un archivo final no es escalable, protege poco tu propiedad intelectual y genera problemas de límites de ruta (MAX_PATH en Windows).
 
-The **mandatory practice** for distributing your MCP is to create a bundle with **esbuild**:
+La **práctica mandatoria** para distribuir tu MCP es crear un bundle con **esbuild**:
 
-1.  Install dependencies: `npm install --save-dev esbuild`
-2.  Run esbuild pointing to your entry points (example):
-    `npx esbuild config.ts Plugins/**/*.ts --bundle --platform=node --outdir=dist --format=cjs`
-3.  **Result:** You will get minified and unified code in the `dist` folder.
-4.  Copy any necessary static files (such as `SKILL.md` or images) to the `dist` folder.
-5.  Compress **the content** of the `dist` folder into a `.zip` file. *(Do not compress the dist folder itself, but the files inside).*
+1.  Instala las dependencias: `npm install --save-dev esbuild`
+2.  Ejecuta esbuild apuntando a tus puntos de entrada agregando el flag para empaquetar dependencias y excluir los módulos nativos:
+    ```bash
+    npx esbuild config.ts Plugins/**/*.ts --bundle --platform=node --outdir=dist --format=cjs --external:@core/*
+    ```
+    * **¿Por qué `--bundle`?** El ejecutable de Urano `.exe` no trae dependencias externas de terceros (como `axios`, `ethers`, etc.). Este flag empaqueta tus librerías npm dentro del plugin para que funcione sin instalación (Plug & Play).
+    * **¿Por qué `--external:@core/*`?** Los módulos internos de Urano (`@core`, `@models`) ya existen en memoria. Si los empaquetas, causarás errores fatales de duplicación y fallos de `Cannot find module`.
+3.  **Resultado:** Obtendrás un código minificado y unificado en la carpeta `dist`.
+4.  Copia cualquier archivo estático necesario (como `SKILL.md` o imágenes) a la carpeta `dist`.
+5.  Comprime **el contenido** de la carpeta `dist` en un archivo `.zip`. *(No comprimas la carpeta dist en sí, sino los archivos que están dentro).*
 
-### 🚀 Publishing in the Marketplace (GitHub Registry)
+> [!TIP]
+> **¿Tu editor (VSCode) te da error al importar `@core/...`?**
+> Para solucionar el subrayado rojo, crea un archivo `tsconfig.json` en la raíz de tu plugin:
+> ```json
+> {
+>   "compilerOptions": {
+>     "baseUrl": ".",
+>     "paths": {
+>       "@core/*": ["*"],
+>       "@models/*": ["*"],
+>       "@modules/*": ["*"]
+>     }
+>   }
+> }
+> ```
+> *(Nota: Esto silencia el error visual. En ejecución, Urano inyectará los módulos reales).*
 
-Urano manages its Marketplace through a remote `registry.json` file hosted on a public GitHub repository.
+### 🚀 Publicación en el Marketplace (GitHub Registry)
 
-1.  **Upload your Release:** Create a Release in your GitHub repository or any publicly accessible server, and upload your compiled `.zip` file as an asset.
-2.  **Request Inclusion (Pull Request):** Modify the `registry.json` file of the official Urano ecosystem repository by adding your plugin entry:
+Urano gestiona su Marketplace a través de un archivo remoto `registry.json` alojado en un repositorio público de GitHub.
+
+1.  **Sube tu Release:** Crea un Release en tu repositorio de GitHub o en cualquier servidor accesible públicamente, y sube tu archivo `.zip` compilado como un asset.
+2.  **Solicita Inclusión (Pull Request):** Modifica el archivo `registry.json` del repositorio oficial del ecosistema Urano añadiendo la entrada de tu plugin:
 
 ```json
 {
-  "id": "MySuperMCP",
+  "id": "MiSuperMcp",
   "name": "Super MCP",
-  "author": "Your Name",
-  "description": "Brief description of what the plugin does.",
+  "author": "Tu Nombre",
+  "description": "Breve descripción de qué hace el plugin.",
   "version": "1.0.0",
-  "category": "Productivity",
+  "category": "Productividad",
   "icon": "Zap", 
-  "tags": ["tool", "ai"],
-  "downloadUrl": "https://github.com/your-user/your-repo/releases/download/v1.0.0/mysupermcp.zip",
+  "tags": ["herramienta", "ia"],
+  "downloadUrl": "https://github.com/tu-usuario/tu-repo/releases/download/v1.0.0/misupermcp.zip",
   "verified": false
 }
 ```
 
-### 🔄 Versioning and Updates System
+### 🔄 Sistema de Versionamiento y Actualizaciones
 
-Urano Desktop's backend will handle the rest:
--   **Remote Installation:** The user clicks "Install" and Urano downloads the ZIP, validates integrity (Zip Slip protection), and extracts it into the isolated production vault.
--   **Control File:** Urano automatically generates an `_installed.json` file within the plugin folder to track the current `version` installed and the `source` (registry or dev-link).
--   **Automatic Updates:** A background service checks the `registry.json` periodically (every 6 hours). If it detects a higher version (SemVer), it notifies the user in the Marketplace tab to update with 1-click. Before updating, Urano creates an automatic backup of the previous version in `.mcp_backups`.
+El backend de Urano Desktop se encargará del resto:
+-   **Instalación Remota:** El usuario hace clic en "Instalar" y Urano descarga el ZIP, valida la integridad (Zip Slip protection) y lo extrae en la bóveda aislada de producción.
+-   **Archivo de Control:** Urano genera automáticamente un archivo `_installed.json` dentro de la carpeta del plugin para rastrear la `version` actual instalada y el `source` (registry o dev-link).
+-   **Actualizaciones Automáticas:** Un servicio en segundo plano revisa el `registry.json` periódicamente (cada 6 horas). Si detecta una versión superior (SemVer), notifica al usuario en la pestaña de Marketplace para actualizar a 1-clic. Antes de actualizar, Urano crea un backup automático de la versión anterior en `.mcp_backups`.
 
-### 🛡️ Responsible Development: Whitelisting
-If your MCP has access to sensitive resources (files, processes, network), it is **mandatory** to implement a validation layer in your Plugin.
-1. Define a field in `settings` of `config.ts` (e.g., `ALLOWED_APPS`).
-2. In your `executeAction`, read that value from the `configStore`.
-3. Validate the request against that value. If it fails, return a descriptive error: `"AI ATTENTION: The requested resource is outside the white list allowed by the user."`.
+### 🛡️ Desarrollo Responsable: Whitelisting
+Si tu MCP tiene acceso a recursos sensibles (archivos, procesos, red), es **obligatorio** implementar una capa de validación en tu Plugin.
+1. Define un campo en `settings` del `config.ts` (ej: `ALLOWED_APPS`).
+2. En tu `executeAction`, lee ese valor desde el `configStore`.
+3. Valida la petición contra ese valor. Si falla, retorna un error descriptivo: `"ATENCIÓN IA: El recurso solicitado está fuera de la lista blanca permitida por el usuario."`.
+
+### 🛡️ Arquitectura de Seguridad (Vault & Scanner)
+Urano implementa un modelo de confianza cero (Zero Trust) para los plugins instalados:
+1.  **Aislamiento de Secretos (Module-Level Isolation)**: El `Vault` de Urano utiliza `AsyncLocalStorage` para restringir el acceso criptográfico. Un plugin en ejecución **solo puede solicitar secretos que pertenezcan a su propio módulo**. Si un plugin malicioso intenta acceder a las llaves de AWS de otro módulo (ej. `Vault.getSecret('AWS', 'ACCESS_KEY')`), Urano bloqueará la solicitud y devolverá `null`.
+2.  **Escáner de Seguridad Estático**: Cuando un usuario vincula una carpeta de desarrollo o instala un `.zip`, el sistema analiza estáticamente el código fuente del plugin en busca de vulnerabilidades o API peligrosas (`child_process`, `fs`, `eval`, `net`).
+3.  **Transparencia al Usuario**: Si el escáner detecta capacidades críticas, Urano inyectará una alerta visual de seguridad (🛡️) en el Marketplace y en el Dashboard, para que el usuario o el desarrollador estén informados sobre qué partes del sistema está solicitando controlar el plugin antes de que decida encenderlo.
 
 ---
 
-## 7. Creating Audio-Aware MCPs
+## 7. Creando MCPs con Conciencia de Audio (Audio-Aware Plugins)
 
-Urano includes a **native Audio Engine** (`useAudioEngine`) that allows capturing user voice without your MCP having to handle microphones directly. Already transcribed voice chunks arrive at your plugin as plain text.
+Urano incluye un **Audio Engine nativo** (`useAudioEngine`) que permite capturar voz del usuario sin que tu MCP tenga que manejar micrófonos directamente. Los chunks de voz ya transcritos llegan a tu plugin como texto plano.
 
-### Pattern: Plugin that processes voice chunks in real-time
+### Patrón: Plugin que procesa chunks de voz en tiempo real
 
-Ideal for MCPs such as live presentations, dictation assistants, or voice commands.
+Ideal para MCPs como presentaciones en vivo, asistentes de dictado, o comandos de voz.
 
 ```typescript
 // Plugins/Presentation/PresentationPlugin.ts
@@ -380,20 +542,20 @@ export class PresentationPlugin {
     private currentStageIndex = 0
     private stages: { keywords: string[]; uiSpec: any }[] = []
 
-    // Standard action: loads the script
+    // Acción estándar: carga el guión
     async apiLoadpresentation(payload: { stages: any[] }) {
         this.stages = payload.stages
         this.currentStageIndex = 0
         return { loaded: true, totalStages: this.stages.length }
     }
 
-    // High-frequency action: receives voice chunks directly from the AudioEngine
-    // This action DOES NOT invoke the LLM in each call — it is pure Plugin logic.
+    // Acción de alta frecuencia: recibe chunks de voz directamente del AudioEngine
+    // Esta acción NO invoca el LLM en cada llamada — es pura lógica de Plugin.
     async apiProcessvoicechunk(payload: { chunk: string }) {
         const current = this.stages[this.currentStageIndex]
         if (!current) return { action: 'none' }
 
-        // Check if the chunk contains keywords from the current stage
+        // Verificar si el chunk contiene palabras clave de la etapa actual
         const match = current.keywords.some(kw =>
             payload.chunk.toLowerCase().includes(kw.toLowerCase())
         )
@@ -408,72 +570,72 @@ export class PresentationPlugin {
 }
 ```
 
-### How the Frontend calls your plugin directly (without agent)
+### Cómo el Frontend llama tu plugin directamente (sin agente)
 
-For ultra-low latency (< 600ms), the frontend can bypass the LLM and call your plugin directly:
+Para latencia ultra-baja (< 600ms), el frontend puede bypasear el LLM y llamar tu plugin directo:
 
 ```typescript
-// In the React component that controls the session
+// En el componente React que controla la sesión
 const handleVoiceChunk = async (text: string) => {
     const res = await window.electronAPI.customIpcCall(
         '/module/LivePresenter/plugins/Presentation/processvoicechunk',
         { chunk: text }
     )
     if (res.action === 'advance') {
-        // Trigger generateDynamicUI in MultiverseTabs for the new stage
+        // Disparar generateDynamicUI en MultiverseTabs para la nueva etapa
     }
 }
 
-// Pass it to the AudioEngine
+// Pasarlo al AudioEngine
 audioEngine.start({
     mode: 'chunk',
     onChunk: handleVoiceChunk
 })
 ```
 
-### Full Flow: Voice → Plugin → Visual
+### Flujo Completo: Voz → Plugin → Visual
 
 ```
-Microphone
+Micrófono
    ↓  (Web Speech API, ~150ms)
 AudioEngine.onChunk(text)
-   ↓  (Direct IPC, <10ms)
+   ↓  (IPC directo, <10ms)
 PresentationPlugin.processVoiceChunk()
-   ↓  (internal logic, <5ms)
+   ↓  (lógica interna, <5ms)
 generateDynamicUI() → MultiverseTab
    ↓  (React render, ~100ms)
-Updated Visual
+Visual actualizado
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: ~265ms (without LLM) ✅
+Total: ~265ms (sin LLM) ✅
 ```
 
 > [!TIP]
-> Reserve the LLM to generate the **content** of the stages at the beginning (when you load the script), not to process each voice fragment. This way you get maximum intelligence with minimum operational latency.
+> Reserva el LLM para generar el **contenido** de los stages al inicio (cuando cargas el guión), no para procesar cada fragmento de voz. Así obtienes la máxima inteligencia con la mínima latencia operativa.
 
-### User Audio Device Selection
+### Selección de Dispositivo de Audio por el Usuario
 
-From **AgentsDashboard > Audio Configuration**, the user can choose the microphone to be used. You do not need to manage this in your plugin.
+Desde el **AgentsDashboard > Configuración de Audio**, el usuario puede elegir el micrófono que se usará. No necesitas gestionar esto en tu plugin.
 
 
-## 8. Dynamic Rendering and the LivePresenter Pattern
+## 8. Renderizado Dinámico y el Patrón LivePresenter
 
-Starting with version 1.3.0, MCP modules can render complex React interfaces in the frontend using the **MultiverseTabs** module. This allows an agent to not just "talk", but to "build" applications in real-time.
+A partir de la versión 1.3.0, los módulos MCP pueden renderizar interfaces React complejas en el frontend utilizando el módulo **MultiverseTabs**. Esto permite que un agente no solo "hable", sino que "construya" aplicaciones en tiempo real.
 
-### Invoking a Rendering from a Plugin
+### Invocando un Renderizado desde un Plugin
 
-If your plugin needs to show a dashboard, a chart, or a presentation, it must invoke the `generatedynamicui` action of MultiverseTabs.
+Si tu plugin necesita mostrar un dashboard, una gráfica o una presentación, debe invocar la acción `generatedynamicui` de MultiverseTabs.
 
 ```typescript
 // Plugins/Visualization/VizPlugin.ts
 public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
-    // We invoke the MultiverseTabs plugin using the injected helper
-    // This ensures compatibility in both Dev and Production modes.
+    // Invocamos el plugin de MultiverseTabs utilizando el helper inyectado
+    // Esto garantiza compatibilidad tanto en modo Dev como en Producción.
     await this.config._callPlugin('MultiverseTabs', 'Tabs', 'generatedynamicui', {
         sessionId: payload.sessionId,
         purpose: 'dashboard-analytics',
         spec: {
-            title: "Pro Data Analysis",
-            component: "DynamicGrid", // React component registered in UranoFront
+            title: "Análisis de Datos Pro",
+            component: "DynamicGrid", // Componente React registrado en UranoFront
             props: {
                 dataset: payload.data,
                 refreshInterval: 5000
@@ -485,99 +647,119 @@ public async apiRenderDashboard(payload: { data: any, sessionId: string }) {
 }
 ```
 
-### The "Hybrid Execution" Pattern (Recommended)
+### El Patrón de "Ejecución Híbrida" (Recomendado)
 
-For a smooth user experience, follow this pattern in your plugins:
+Para una experiencia de usuario fluida, sigue este patrón en tus plugins:
 
-1.  **Immediate Static Response**: Return a text summary or a multimodal `MessagePart[]` so the user knows the action has started.
-2.  **Asynchronous Dynamic Improvement**: Trigger the background `generatedynamicui` to open the interactive tab.
+1.  **Respuesta Estática Inmediata**: Retorna un resumen en texto o un `MessagePart[]` multimodal para que el usuario sepa que la acción comenzó.
+2.  **Mejora Dinámica Asíncrona**: Dispara el `generatedynamicui` de trasfondo para abrir la pestaña interactiva.
 
 ```typescript
 async executeAction(action: string, payload: any) {
     if (action === 'analyze') {
-        // 1. Trigger heavy UI asynchronously
+        // 1. Disparar UI pesada asíncronamente
         this.apiRenderDashboard(payload); 
 
-        // 2. Return instant confirmation to the Agent context
-        return "I have started the visual analysis in a new Multiverse tab. While it loads, I can confirm that preliminary data shows a growth of 20%.";
+        // 2. Retornar confirmación instantánea al Agent context
+        return "He iniciado el análisis visual en una nueva pestaña del Multiverso. Mientras se carga, puedo confirmarte que los datos preliminares muestran un crecimiento del 20%.";
     }
 }
 ```
 
 ---
 
-## 9. White List and Security (FileSystem)
+## 9. Lista Blanca y Seguridad (FileSystem)
 
-If your module handles local files, it is vital that the agent knows which paths are allowed beforehand.
+Si tu módulo maneja archivos locales, es vital que el agente sepa qué rutas tiene permitidas de antemano.
 
-1.  **`listAllowed` Action**: Always implement an action that returns the content of your authorized path `settings`.
-2.  **`SKILL.md` Protocol**: Instruct the agent to **always** execute `listAllowed` before attempting to read or write files. This avoids permission errors (`ENOENT`) and improves model confidence.
+1.  **Acción `listAllowed`**: Implementa siempre una acción que devuelva el contenido de tus `settings` de rutas autorizadas.
+2.  **Protocolo en `SKILL.md`**: Instruye al agente para que **siempre** ejecute `listAllowed` antes de intentar leer o escribir archivos. Esto evita errores de permisos (`ENOENT`) y mejora la confianza del modelo.
 
 ```markdown
-# FileSystem Instructions
-Before performing any file operations, you MUST call `urano_filesystem_localfiles_listallowed` to know the secure paths authorized by the user. Do not attempt to access paths outside this list.
+# Instrucciones de FileSystem
+Antes de realizar cualquier operación de archivos, DEBES llamar a `urano_filesystem_localfiles_listallowed` para conocer las rutas seguras autorizadas por el usuario. No intentes acceder a rutas fuera de esta lista.
 ```
 
 
-## 🛠️ Resilience and Stability Protocol (AI SDK v6)
+## 🛠️ Protocolo de Resiliencia y Estabilidad (AI SDK v6)
 
-Urano Desktop implements automatic protection layers in the **RuntimeLoop** to ensure MCP agents do not corrupt sessions:
+Urano Desktop implementa capas de protección automática en el **RuntimeLoop** para garantizar que los agentes MCP no corrompan las sesiones:
 
-### 1. Cleanup of Orphaned Tools
-If a turn is interrupted (manual cancellation, network crash), the engine automatically detects `assistant` type messages that contain tool calls without results. Before starting a new turn, the system cleans up these calls to avoid the `AI_MissingToolResultsError`.
+### 1. Limpieza de Herramientas Huérfanas
+Si un turno es interrumpido (cancelación manual, crash de red), el motor detecta automáticamente los mensajes de tipo `assistant` que contienen llamadas a herramientas sin resultado. Antes de iniciar un nuevo turno, el sistema limpia estas llamadas para evitar el error `AI_MissingToolResultsError`.
 
-### 2. Native Vision Validation (Hybrid Pattern)
-Before injecting images into the context of an MCP plugin (e.g., screen captures), the system validates if the configured model supports vision (GPT-4o, Claude 3.5, etc.). 
+### 2. Validación Nativa de Visión (Hybrid Pattern)
+Antes de inyectar imágenes en el contexto de un plugin MCP (ej. capturas de pantalla), el sistema valida si el modelo configurado soporta visión (GPT-4o, Claude 3.5, etc.). 
 
-**Interception Logic**: To ensure stability, the **RuntimeLoop** automatically intercepts any tool response (whether a plain object or within an Array) that contains the `base64` or `image` properties. Instead of leaving the heavy binary in the tool response, it extracts it and moves it to an adjacent injected message, leaving a light placeholder text in its place.
+**Lógica de Intercepción**: Para asegurar la estabilidad, el **RuntimeLoop** intercepta automáticamente cualquier respuesta de herramienta (ya sea un objeto plano o dentro de un Array) que contenga las propiedades `base64` o `image`. En lugar de dejar el binario pesado en la respuesta de la herramienta, lo extrae y lo mueve a un mensaje inyectado adyacente, dejando un texto placeholder ligero en su lugar.
 
-**Return Standard for Developers:**
-For your native tools or MCP servers to securely send multimodal files (images) to the LLM without causing token validation errors, simply return the data using one of these structures:
+**Estándar de Retorno para Desarrolladores:**
+Para que tus herramientas nativas o servidores MCP envíen archivos multimodales (imágenes) al LLM de forma segura sin provocar errores de validación de tokens, simplemente retorna la data usando una de estas estructuras:
 
 ```javascript
-// Option 1: Direct Object (e.g., LocalFilesPlugin)
+// Opción 1: Objeto Directo (Ej. LocalFilesPlugin)
 return {
     base64: "iVBORw0KGgo...", 
     mimeType: "image/png" 
 };
 
-// Option 2: AI SDK Native Parts (e.g., DesktopPlugin / SystemEye)
+// Opción 2: Partes Nativas de AI SDK (Ej. DesktopPlugin / SystemEye)
 return [
-    { type: "text", text: "Processed image" },
+    { type: "text", text: "Imagen procesada" },
     { type: "image", image: "iVBORw0KGgo...", mimeType: "image/png" }
 ];
 ```
-By following this standard, it doesn't matter if your tool is MCP or Native: the Urano engine will handle the image in the same universal way, ensuring it arrives clean to the multimodal models.
+Al cumplir este estándar, no importa si tu tool es MCP o Nativo: el motor de Urano manejará la imagen de la misma manera universal, asegurando que llegue limpia a los modelos multimodales.
 
 ---
 
-## 🎨 UI Extension: Session Badges
+## 🎨 Extensión de UI: Session Badges
 
-For MCP modules that generate documents or open external contexts, it is recommended to use the **Session Badges API**. This allows injecting interactive native quick-access buttons directly into the user's conversation. 
+Para módulos MCP que generan documentos o abren contextos externos, se recomienda utilizar el **API de Session Badges**. Esto permite inyectar botones nativos interactivos de acceso rápido directamente en la conversación del usuario. 
 
-However, since external plugins should not import `@core`, they must perform this update via `_callPlugin` (see next section).
+Sin embargo, dado que los plugins externos no deben importar `@core`, deben realizar esta actualización a través de `_callPlugin` (ver sección siguiente).
 
 ---
 
-## 🔌 Import Limitations and the Injected Pattern
+## 🔌 Limitaciones de Imports y el Patrón Inyectado
 
-MCP modules in Urano Desktop are not limited to responding to the LLM; they have access to the capabilities of the Urano engine. However, there is a critical distinction between **Native** modules and **External (Workspace)** modules.
+Los módulos MCP en Urano Desktop no están limitados a responder al LLM; tienen acceso a las capacidades del motor de Urano. Sin embargo, existe una distinción crítica entre módulos **Nativos** y módulos **Externos (Workspace)**.
 
-### ⚠️ The Alias Problem (`@core`)
-Urano Desktop uses TypeScript aliases (such as `@core/*`). When you develop an external plugin in a separate folder:
-1.  **In Development**: The on-the-fly transpiler cannot resolve `@core` because your folder is outside the project "root".
-2.  **In Production**: The bundled code could lose the reference to the global Node context.
+### 🔌 Accediendo a `@core` en Plugins Externos
 
-> [!CAUTION]
-> **Direct Imports Prohibited**: Do not use `import { ... } from '@core'` in plugins intended for the Workspace. Your plugin will fail with a `MODULE_NOT_FOUND` error upon execution.
+A diferencia de versiones anteriores, **SÍ puedes utilizar importaciones directas de `@core`** en tus plugins externos. Dado que Urano registra `module-alias` a nivel global en la aplicación principal, cualquier llamado a `require('@core/...')` funcionará nativamente sin importar en qué directorio de tu computadora resida tu plugin.
 
-### ✅ The Solution: Injected Dependency (`_callPlugin`)
-The system automatically injects a bridge function into the configuration object that your constructor receives.
+Sin embargo, para que esto funcione correctamente en tu entorno de desarrollo (sin que TypeScript lance errores por no encontrar el código fuente de Urano), debes realizar dos configuraciones clave:
+
+1. **Silenciar los Errores de TypeScript (Opcional pero recomendado)**: Como instalaste Urano vía `.exe` y no tienes el repositorio fuente localmente, VSCode subrayará `@core` en rojo. Para solucionarlo, crea un archivo `urano.d.ts` en la raíz de tu proyecto MCP con este contenido básico:
+   ```typescript
+   declare module '@core/PluginBase' {
+       export class PluginBase { constructor(config: any); }
+   }
+   declare module '@core/Security/Vault' {
+       export class Vault { static getSecret(module: string, key: string): string; }
+   }
+   declare module '@core/Router' {
+       export const Router: any;
+   }
+   ```
+   *(También puedes simplemente usar `// @ts-ignore` arriba de tus imports).*
+
+2. **Excluir `@core` en esbuild (OBLIGATORIO)**: Es crítico indicarle a `esbuild` que **NO** intente empaquetar `@core` en tu ZIP, ya que estas clases serán provistas por el ejecutable de Urano en tiempo de ejecución. Añade el flag `--external:@core/*`:
+   ```bash
+   npx esbuild config.ts Plugins/**/*.ts --bundle --platform=node --outdir=dist --format=cjs --external:@core/*
+   ```
+
+Gracias a este patrón, puedes importar clases nativas de forma limpia:
+`import { PluginBase } from '@core/PluginBase';`
+`import { Vault } from '@core/Security/Vault';`
+
+### 🔀 Comunicación entre Plugins Externos (`_callPlugin`)
 
 ```typescript
 constructor(moduleConfig: any) {
     this.config = moduleConfig;
-    // this.config._callPlugin is now available
+    // this.config._callPlugin ahora está disponible
 }
 
 private async callOtherPlugin(targetModule, targetPlugin, action, data) {
@@ -590,33 +772,30 @@ private async callOtherPlugin(targetModule, targetPlugin, action, data) {
 }
 ```
 
-### When to use `@core`?
-You can only use `@core` imports if you are developing a **native** module that will be compiled along with Urano Desktop's main source code (within `src/main/Modules`).
-
 ---
 
-## 🎙️ Integration with the Native Audio Engine
+## 🎙️ Integración con el Audio Engine Nativo
 
-Urano has a native voice capture system (`useAudioEngine`) available in the frontend. MCP modules can receive audio as input in the following ways:
+Urano cuenta con un sistema nativo de captura de voz (`useAudioEngine`) disponible en el frontend. Los módulos MCP pueden recibir audio como entrada de los siguientes modos:
 
-### How voice chunks arrive at your MCP
+### Cómo llegan los chunks de voz a tu MCP
 
-The `AudioEngine` transcribes the audio and sends it to the agent **as plain text** through the normal IPC channel (`agentSessionSend`). Your MCP does not need to listen to the microphone directly: the agent will receive the already processed text.
+El `AudioEngine` transcribe el audio y lo envía al agente **como texto plano** a través del canal IPC normal (`agentSessionSend`). Tu MCP no necesita escuchar el micrófono directamente: el agente recibirá el texto ya procesado.
 
-For an MCP like `LivePresenter` that needs to react to each chunk without invoking the LLM, a direct handler can be registered:
+Para un MCP como `LivePresenter` que necesita reaccionar a cada chunk sin invocar el LLM, se puede registrar un handler directo:
 
 ```typescript
-// In your Plugin, expose an action to receive voice chunks from the frontend
+// En tu Plugin, expón una acción para recibir chunks de voz del frontend
 async apiProcessvoicechunk(payload: { chunk: string, sessionId: string }) {
-    // Internal logic: compare chunk with current stage, decide whether to advance
-    // Without invoking the LLM if not necessary
+    // Lógica interna: comparar chunk con stage actual, decidir si avanzar
+    // Sin invocar el LLM si no es necesario
     return { action: 'none' | 'advance' | 'update' }
 }
 ```
 
-The frontend calls the IPC directly:
+El frontend llama directamente al IPC:
 ```typescript
-// From AudioEngine in LivePresenter mode (Phase 2)
+// Desde AudioEngine en modo LivePresenter (Phase 2)
 window.electronAPI.customIpcCall('/module/LivePresenter/plugins/Presentation/processvoicechunk', {
     chunk: transcribedText,
     sessionId: activeSessionId,
@@ -624,109 +803,109 @@ window.electronAPI.customIpcCall('/module/LivePresenter/plugins/Presentation/pro
 ```
 
 > [!TIP]
-> This pattern (Audio → Direct Plugin, without LLM per chunk) is the key to achieving voice-to-visual latency of **< 600ms** in real-time.
+> Este patrón (Audio → Plugin directo, sin LLM por chunk) es la clave para lograr latencia **< 600ms** de voz a visual en tiempo real.
 
-### Audio Device Selection
+### Selección de Dispositivo de Audio
 
-Users can select their preferred microphone from **AgentsDashboard > Audio Configuration**. The selected `deviceId` is passed to `AudioEngine.start()` and is available for Whisper in future implementations.
+Los usuarios pueden seleccionar su micrófono preferido desde el **AgentsDashboard > Configuración de Audio**. El `deviceId` seleccionado se pasa al `AudioEngine.start()` y está disponible para Whisper en implementaciones futuras.
 
 ---
 
-## ✋ Interactive Approval Protocol (Tool Approval)
+## ✋ Protocolo de Aprobación Interactiva (Tool Approval)
 
-As of the recent version, the Urano engine supports pausing the execution of tools that perform destructive or critical actions (such as terminal command execution, mass email sending, etc.) to request interactive confirmation from the user.
+A partir de la versión reciente, el motor de Urano soporta pausar la ejecución de herramientas que realizan acciones destructivas o críticas (como ejecución de comandos de terminal, envío de correos masivos, etc.) para solicitar confirmación interactiva al usuario.
 
-### How to implement it in a Native Plugin?
+### ¿Cómo implementarlo en un Plugin Nativo?
 
-When defining the tool in the `apiList` method, simply add the `requiresApproval: true` property:
+Al definir la herramienta en el método `apiList`, simplemente añade la propiedad `requiresApproval: true`:
 
 ```typescript
 export default class SystemTerminal extends PluginBase {
     async apiList() {
         return [{
             name: 'execute_command',
-            description: 'Executes terminal commands. The engine will pause and ask the user for permission.',
+            description: 'Ejecuta comandos de terminal. El motor pausará y pedirá permiso al usuario.',
             parametersSchema: z.object({
                 command: z.string()
             }),
-            requiresApproval: true, // <-- Activates pause in the engine and UI
+            requiresApproval: true, // <-- Activa la pausa en el motor y la UI
             execute: async (args) => {
-                // This will only execute if the user clicks "Approve" in the frontend
-                return await myExecutor(args.command);
+                // Solo se ejecutará si el usuario hace clic en "Aprobar" en el frontend
+                return await miEjecutor(args.command);
             }
         }];
     }
 }
 ```
 
-### Event Lifecycle:
-1. The Agent decides to use the tool and the engine intercepts `requiresApproval: true`.
-2. The **RuntimeLoop** pauses its asynchronous thread and emits the IPC event `agent-tool-approval-requested`.
-3. The **Dashboard (React)** transforms the status bubble into an interactive yellow "Approval Required" dialog showing the arguments (e.g., the command to be executed) along with two buttons: Approve or Reject.
-4. Upon clicking, the IPC response `agent-tool-approval-response` is emitted back.
-5. If approved, the **RuntimeLoop** resumes and executes the `execute()` function. If rejected, it aborts and returns a `ToolError` saying "User rejected the action", allowing the Agent to understand that permission was denied.
+### Ciclo de Vida del Evento:
+1. El Agente decide usar la herramienta y el motor intercepta `requiresApproval: true`.
+2. El **RuntimeLoop** pausa su hilo asíncrono y emite el evento IPC `agent-tool-approval-requested`.
+3. El **Dashboard (React)** transforma la burbuja de estado en un diálogo amarillo interactivo de "Aprobación Requerida" mostrando los argumentos (ej. el comando a ejecutar) junto a dos botones: Aprobar o Rechazar.
+4. Al hacer clic, se emite el IPC de vuelta `agent-tool-approval-response`.
+5. Si es aprobado, el **RuntimeLoop** resume y ejecuta la función `execute()`. Si es rechazado, se aborta y se devuelve un `ToolError` diciendo "User rejected the action", permitiendo que el Agente entienda que se le denegó el permiso.
 
 ---
 
-## ⚡ Pattern: Rate Limiter for Third-Party APIs (Serial Queue)
+## ⚡ Patrón: Rate Limiter para APIs de Terceros (Serial Queue)
 
-### The Problem
+### El Problema
 
-The **RuntimeLoop** executes all tools generated in a single turn using `Promise.all()`. This means that if the agent emits three tool calls in a single step:
+El **RuntimeLoop** ejecuta todas las herramientas generadas en un mismo turno usando `Promise.all()`. Esto significa que si el agente emite tres tool calls en un mismo paso:
 
 ```
 user_feed()  ─┐
-user_stats() ─┼─ Promise.all → simultaneous trigger → 429 Rate Limit
+user_stats() ─┼─ Promise.all → disparo simultáneo → 429 Rate Limit
 search()      ─┘
 ```
 
-If all three tools call the same external API with a limit of 1 req/sec (such as apiexternalexample), the three HTTP requests arrive concurrently and the last two fail with `429 Too Many Requests`.
+Si las tres tools llaman a la misma API externa con límite de 1 req/seg (como apiexternalexample), las tres requests HTTP llegan concurrentemente y las últimas dos fallan con `429 Too Many Requests`.
 
-### Why NOT Add a `parallel: false` Flag to Core
+### Por Qué NO Añadir una Bandera `parallel: false` al Core
 
-It might seem tempting to add `parallel: false` to the tool schema in `config.ts` so that the `RuntimeLoop` executes them serially. However, this is not the correct solution because:
+Podría parecer tentador añadir `parallel: false` al schema de la tool en `config.ts` para que el `RuntimeLoop` las ejecute en serie. Sin embargo, esto no es la solución correcta porque:
 
-- It would require changing `ModuleConfig.ts`, `SkillRegistry.ts`, `McpTool.ts`, and `RuntimeLoop.ts` — high risk for a very specific case.
-- It would make **all** tools in the turn wait, even those that do not use the limited API.
-- It would violate the single responsibility principle: the RuntimeLoop should not know about external API rate-limiting policies.
+- Requeriría cambiar `ModuleConfig.ts`, `SkillRegistry.ts`, `McpTool.ts` y `RuntimeLoop.ts` — alto riesgo por un caso muy específico.
+- Haría que **todas** las herramientas del turno esperasen, incluso las que no usan la API limitada.
+- Violaría el principio de responsabilidad única: el RuntimeLoop no debe conocer las políticas de rate-limiting de APIs externas.
 
-### The Solution: Serial Queue at HTTP Level (Serial Queue)
+### La Solución: Cola Serial a Nivel HTTP (Serial Queue)
 
-The correct solution is to implement a **promise semaphore** that serializes only the HTTP calls to the limited API, **completely invisible** to the agent and the RuntimeLoop.
+La solución correcta es implementar un **semáforo de promesas** que serialice únicamente las llamadas HTTP a la API limitada, **completamente invisible** para el agente y el RuntimeLoop.
 
-**Reference Implementation** (see `MarketsPlugin.ts`):
+**Implementación de referencia** (ver `PluginNombrePlugin.ts`):
 
 ```typescript
-// ── Rate limiting constants ────────────────────────────────────────────
-const MY_API_MIN_INTERVAL_MS = 1100; // 1.1s between requests (margin over 1/s)
-let myApiLastCall = 0;
-let myApiQueue: Promise<any> = Promise.resolve();
+// ── Constantes de rate limiting ────────────────────────────────────────────
+const MI_API_MIN_INTERVAL_MS = 1100; // 1.1s entre requests (margen sobre 1/s)
+let miApiLastCall = 0;
+let miApiQueue: Promise<any> = Promise.resolve();
 
-// Enqueues the 'fn' function for serial execution with minimum delay between calls.
-function myApiEnqueue<T>(fn: () => Promise<T>): Promise<T> {
-    const result = myApiQueue.then(async () => {
+// Encola la función 'fn' para ejecución serial con delay mínimo entre calls.
+function miApiEnqueue<T>(fn: () => Promise<T>): Promise<T> {
+    const result = miApiQueue.then(async () => {
         const now = Date.now();
-        const wait = MY_API_MIN_INTERVAL_MS - (now - myApiLastCall);
+        const wait = MI_API_MIN_INTERVAL_MS - (now - miApiLastCall);
         if (wait > 0) await new Promise(r => setTimeout(r, wait));
-        myApiLastCall = Date.now();
+        miApiLastCall = Date.now();
         return fn();
     });
-    // Chain so that the next call waits for THIS one, not just the previous one.
-    myApiQueue = result.catch(() => {});
+    // Encadenar para que la siguiente llamada espere ESTA, no solo la anterior.
+    miApiQueue = result.catch(() => {});
     return result;
 }
 
-// Fetch wrapper that uses the queue
-async function myFetch(path: string, apiKey: string): Promise<any> {
-    return myApiEnqueue(async () => {
-        const res = await fetch(`https://api.my-service.com${path}`, {
+// Wrapper de fetch que usa la cola
+async function miFetch(path: string, apiKey: string): Promise<any> {
+    return miApiEnqueue(async () => {
+        const res = await fetch(`https://api.mi-servicio.com${path}`, {
             headers: { 'Authorization': `Bearer ${apiKey}` }
         });
-        // Handle 429 with automatic retry using Retry-After
+        // Manejo de 429 con retry automático usando Retry-After
         if (res.status === 429) {
             const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10);
             await new Promise(r => setTimeout(r, retryAfter * 1000 + 100));
-            const retry = await fetch(`https://api.my-service.com${path}`, {
+            const retry = await fetch(`https://api.mi-servicio.com${path}`, {
                 headers: { 'Authorization': `Bearer ${apiKey}` }
             });
             if (!retry.ok) throw new Error(`API error ${retry.status}`);
@@ -738,57 +917,57 @@ async function myFetch(path: string, apiKey: string): Promise<any> {
 }
 ```
 
-### How the Queue Works
+### Cómo Funciona la Cola
 
 ```
-Promise.all triggers:       user_feed()   user_stats()   search()
-                                 │               │              │
-                            call:           myFetch()     myFetch()     myFetch()
-                                 │               │              │
-                          myApiEnqueue()  myApiEnqueue() myApiEnqueue()
-                                 │               │              │
-                          ┌──────▼───────────────▼──────────────▼──────┐
-                          │          SERIAL QUEUE (myApiQueue)         │
-                          │   Req 1 → [waits 1.1s] → Req 2 → [1.1s]   │
-                          │   → Req 3                                   │
-                          └────────────────────────────────────────────┘
+Promise.all dispara:       user_feed()   user_stats()   search()
+                                │               │              │
+                           llaman a:        miFetch()     miFetch()     miFetch()
+                                │               │              │
+                         miApiEnqueue()  miApiEnqueue() miApiEnqueue()
+                                │               │              │
+                         ┌──────▼───────────────▼──────────────▼──────┐
+                         │          COLA SERIAL (miApiQueue)           │
+                         │   Req 1 → [espera 1.1s] → Req 2 → [1.1s]  │
+                         │   → Req 3                                   │
+                         └────────────────────────────────────────────┘
 ```
 
-The RuntimeLoop's `Promise.all` ends when **all three promises resolve**, which happens sequentially with a 1.1s separation. From the point of view of the agent and the RuntimeLoop, the difference is only in latency, not in behavior.
+El `Promise.all` del RuntimeLoop termina cuando **las tres promesas resuelven**, lo cual sucede secuencialmente con 1.1s de separación. Desde el punto de vista del agente y del RuntimeLoop, la diferencia es solo de latencia, no de comportamiento.
 
-### When to Use This Pattern
+### Cuándo Usar Este Patrón
 
-Use a serial queue when your plugin integrates an external API that:
+Usa una cola serial cuando tu plugin integra una API externa que:
 
-| Condition | Example |
+| Condición | Ejemplo |
 |-----------|---------|
-| Has write OR read rate limit | apiexternalexample: ~1 req/s, Twitter API: 300 req/15min |
-| The agent can call multiple tools from the same provider in one turn | `user_feed` + `user_stats` + `search` → all use apiexternalexample |
-| The rate limit error is not recoverable in that same request | `429` without Retry-After header |
+| Tiene rate limit de escritura O lectura | apiexternalexample: ~1 req/s, Twitter API: 300 req/15min |
+| El agente puede llamar múltiples herramientas del mismo proveedor en un turno | `user_feed` + `user_stats` + `search` → todas usan apiexternalexample |
+| El error de rate limit no es recuperable en esa misma request | `429` sin Retry-After header |
 
 > [!TIP]
-> The queue is a **module-level singleton** (declared outside the plugin class). This ensures that even if multiple sessions of the same agent are active simultaneously, all API calls share the same queue and respect the global rate limit.
+> La cola es un **singleton a nivel de módulo** (declarada fuera de la clase del plugin). Esto garantiza que incluso si múltiples sesiones del mismo agente están activas simultáneamente, todas las llamadas a la API comparten la misma cola y respetan el rate limit global.
 
 > [!NOTE]
-> If the API does not return the `Retry-After` header, use a conservative value of 1–2 seconds as a fallback. Retry is optional but highly recommended to prevent a momentary traffic spike from bringing down all functionality.
+> Si la API no retorna el header `Retry-After`, usa un valor conservador de 1–2 segundos como fallback. El retry es opcional pero muy recomendado para evitar que un pico momentáneo de tráfico derribe toda la funcionalidad.
 
 > [!CAUTION]
-> **Critical Timeout**: When using a serial queue, it is mandatory that the `fetch` inside the queue has a timeout (using `AbortController`). If a request gets hung without a timeout, it will **block the entire queue** for the rest of the tools and users, leaving the module unusable until restart.
-> A timeout for the wait time *in* the queue is also recommended (e.g., abort if the request has been waiting >15s for its turn).
+> **Timeout Crítico**: Cuando uses una cola serial, es obligatorio que el `fetch` dentro de la cola tenga un timeout (usando `AbortController`). Si una petición se queda colgada sin timeout, **bloqueará toda la cola** para el resto de herramientas y usuarios, dejando el módulo inutilizable hasta reiniciar.
+> También se recomienda un timeout para el tiempo de espera *en* la cola (ej. abortar si la petición lleva >15s esperando su turno).
 
 ---
 
-## 💎 Advanced MCP Patterns (Urano Standard)
+## 💎 Patrones Avanzados MCP (Urano Standard)
 
-To ensure consistency between complex modules (such as UranoMaps or SystemEye), the following development patterns have been standardized:
+Para asegurar la consistencia entre módulos complejos (como UranoMaps o SystemEye), se han estandarizado los siguientes patrones de desarrollo:
 
-### 1. Window Management by Session (`label:sessionId`)
+### 1. Gestión de Ventanas por Sesión (`label:sessionId`)
 
-When a plugin opens tabs in `MultiverseTabs`, it should avoid unnecessarily duplicating windows and allow the agent to recover specific contexts.
+Cuando un plugin abre pestañas en `MultiverseTabs`, debe evitar duplicar ventanas innecesariamente y permitir que el agente recupere contextos específicos.
 
-**Registration Pattern:**
+**Patrón de Registro:**
 ```typescript
-// Dynamic registration: "friendly_name:sessionId" -> tabId
+// Registro dinámico: "nombre_amigable:sessionId" -> tabId
 const dashboardRegistry = new Map<string, string>();
 const dashboardParams = new Map<string, any>();
 
@@ -797,134 +976,134 @@ async apiLaunch(params: { label: string, sessionId: string, ... }) {
     let tabId = dashboardRegistry.get(key);
     
     if (tabId && this.tabExists(tabId)) {
-        // If it already exists, we just focus and update it
+        // Si ya existe, solo la enfocamos y actualizamos
         return this.apiUpdate({ tabId, ... });
     }
     
-    // If it doesn't exist, we create a new one and register it
+    // Si no existe, creamos una nueva y registramos
     tabId = await this.createNewTab();
     dashboardRegistry.set(key, tabId);
     return { tabId, status: 'launched' };
 }
 ```
 
-### 2. Window State Persistence (`state.json`)
+### 2. Persistencia de Estado de Ventanas (`state.json`)
 
-Plugins that handle data in memory (alerts, orders, positions) must persist their state in the user's `userData` to survive restarts.
+Los plugins que manejan datos en memoria (alertas, órdenes, posiciones) deben persistir su estado en el `userData` del usuario para sobrevivir a reinicios.
 
-**Recommended Location:**
+**Ubicación Recomendada:**
 - **Windows**: `%APPDATA%/Urano Desktop/[plugin]_state.json`
 - **Fallback**: `~/.urano/[plugin]_state.json`
 
-**Reference Implementation:**
+**Implementación de Referencia:**
 ```typescript
 function saveState() {
-    const p = path.join(os.homedir(), '.urano', 'my_plugin_state.json');
+    const p = path.join(os.homedir(), '.urano', 'mi_plugin_state.json');
     const data = { registry: Object.fromEntries(dashboardRegistry) };
     fs.writeFileSync(p, JSON.stringify(data, null, 2));
 }
 ```
 
-### 3. Capture Logic and File Caching
+### 3. Lógica de Captura y Caché de Archivos
 
-For an agent to "see" the content of a window or map, the plugin must implement a capture tool that generates local URLs.
+Para que un agente pueda "ver" el contenido de una ventana o mapa, el plugin debe implementar una herramienta de captura que genere URLs locales.
 
-**Capture Standards:**
-1. **Cache Directory**: Always use `path.join(os.homedir(), '.urano', 'cache', 'screenshots')`.
-2. **Multimodal Return**: The tool must return an array with the local path and base64 for the `RuntimeLoop` to process it.
+**Estándares de Captura:**
+1. **Directorio de Caché**: Siempre usar `path.join(os.homedir(), '.urano', 'cache', 'screenshots')`.
+2. **Retorno Multimodal**: La herramienta debe devolver un array con el path local y el base64 para que el `RuntimeLoop` lo procese.
 
-**Return example:**
+**Ejemplo de retorno:**
 ```typescript
 return [
-    { type: 'text', text: `Capture saved in: ${filePath}` },
+    { type: 'text', text: `Captura guardada en: ${filePath}` },
     { type: 'image', image: buffer.toString('base64'), mimeType: 'image/png' }
 ];
 ```
 
-### 4. Dynamic Rendering Standards (`JsonLive`)
+### 4. Estándares de Renderizado Dinámico (`JsonLive`)
 
-When creating new UI components (such as the `Map` widget), these rules must be followed to ensure compatibility with `JsonLiveRenderer`:
+Al crear nuevos componentes UI (como el widget `Map`), se deben seguir estas reglas para asegurar compatibilidad con `JsonLiveRenderer`:
 
-- **Atomicity**: Each component must be autonomous and use `extractStyle()` for its CSS properties.
-- **Fluid Patching**: The plugin should prefer `patchDynamicUI` over `generateDynamicUI` for real-time updates (prevents flickering).
-- **Node Structure**:
+- **Atomicidad**: Cada componente debe ser autónomo y usar `extractStyle()` para sus propiedades CSS.
+- **Patching Fluido**: El plugin debe preferir `patchDynamicUI` sobre `generateDynamicUI` para actualizaciones de tiempo real (evita parpadeos).
+- **Estructura de Nodo**:
     ```json
     {
-      "type": "NewComponent",
+      "type": "NuevoComponente",
       "props": { "glass": true, "glow": "#ff0000", ... },
       "children": [ ... ]
     }
     ```
 
 > [!TIP]
-> If your component requires heavy libraries (such as Leaflet or ECharts), implement it using **Lazy Loading** in the frontend so as not to degrade the initial loading time of the application.
+> Si tu componente requiere librerías pesadas (como Leaflet o ECharts), impleméntalo usando **Lazy Loading** en el frontend para no degradar el tiempo de carga inicial de la aplicación.
 
 ---
 
-## 🔒 Generic OS Permission System
+## 🔒 Sistema de Permisos OS Genérico
 
-Urano implements a centralized mechanism so that any MCP can request permissions at the operating system level natively, with **real verification** (not just registration) before saving the state.
+Urano implementa un mecanismo centralizado para que cualquier MCP pueda solicitar permisos a nivel de sistema operativo de manera nativa, con **verificación real** (no solo registro) antes de guardar el estado.
 
-### Supported Permission Types
+### Tipos de Permiso Soportados
 
-| `permissionType` | Description | macOS | Windows | Linux |
+| `permissionType` | Descripción | macOS | Windows | Linux |
 |---|---|---|---|---|
-| `screen` | Screen capture | System dialog / Settings | Privacy settings | None required |
-| `microphone` | Microphone access | Native `askForMediaAccess` | `ms-settings:privacy-microphone` | None required |
-| `camera` | Camera access | Native `askForMediaAccess` | `ms-settings:privacy-webcam` | None required |
-| `desktop-audio` | Desktop audio (loopback) | ⚠️ Requires virtual device | WASAPI loopback via renderer | PulseAudio/PipeWire |
+| `screen` | Captura de pantalla | Dialog del sistema / Ajustes | Configuración de privacidad | Ninguno requerido |
+| `microphone` | Acceso al micrófono | `askForMediaAccess` nativo | `ms-settings:privacy-microphone` | Ninguno requerido |
+| `camera` | Acceso a la cámara | `askForMediaAccess` nativo | `ms-settings:privacy-webcam` | Ninguno requerido |
+| `desktop-audio` | Audio del escritorio (loopback) | ⚠️ Requiere dispositivo virtual | WASAPI loopback vía renderer | PulseAudio/PipeWire |
 
 > [!WARNING]
-> On **macOS**, desktop audio capture (`desktop-audio`) is not available natively. It requires installing **BlackHole** (free) or **Loopback** and configuring it as system audio output.
+> En **macOS**, la captura de audio del escritorio (`desktop-audio`) no está disponible de forma nativa. Se requiere instalar **BlackHole** (gratuito) o **Loopback** y configurarlo como salida de audio del sistema.
 
-### 1. Definition in `config.ts`
-Add a field of type `button` in the `settings` array of your module. The `name` will serve as a slug in the Vault (`Vault`) to persist whether the user granted the permission.
+### 1. Definición en `config.ts`
+Agrega un campo de tipo `button` en el array de `settings` de tu módulo. El `name` servirá como slug en la bovéda (`Vault`) para persistir si el usuario otorgó el permiso.
 
 ```typescript
-// config.ts of your module
+// config.ts de tu módulo
 settings: [
     {
-        name: 'capture-permission',          // Slug of the permission saved in Vault
-        title: 'Screen Capture',
+        name: 'capture-permission',          // Slug del permiso guardado en Vault
+        title: 'Captura de Pantalla',
         type: 'button',
-        buttonText: 'Request OS Permission',
-        description: 'Allows the agent to see the visual context of your screen',
+        buttonText: 'Solicitar Permiso OS',
+        description: 'Permite al agente ver el contexto visual de tu pantalla',
         actionRoute: 'mcp-request-os-permission',
         actionPayload: { permissionType: 'screen' },
     },
     {
         name: 'microphone-access',
-        title: 'Microphone Access',
+        title: 'Acceso al Micrófono',
         type: 'button',
-        buttonText: 'Request OS Permission',
-        description: 'Allows the agent to listen to microphone audio',
+        buttonText: 'Solicitar Permiso OS',
+        description: 'Permite al agente escuchar audio del micrófono',
         actionRoute: 'mcp-request-os-permission',
         actionPayload: { permissionType: 'microphone' },
     },
     {
         name: 'desktop-audio-access',
-        title: 'Desktop Audio',
+        title: 'Audio del Escritorio',
         type: 'button',
-        buttonText: 'Request OS Permission',
-        description: 'Allows the agent to listen to system audio (loopback)',
+        buttonText: 'Solicitar Permiso OS',
+        description: 'Permite al agente escuchar el audio del sistema (loopback)',
         actionRoute: 'mcp-request-os-permission',
         actionPayload: { permissionType: 'desktop-audio' },
     },
 ],
 ```
 
-### 2. Automatic Behavior
-- The frontend automatically injects `moduleName` and `permissionSlug` (= `name` of the field) into the payload.
-- The backend **verifies the real permission** before saving:
-  - `screen`: Captures a real thumbnail; if empty, returns error and opens System Settings on macOS.
-  - `microphone`/`camera`: Uses `systemPreferences.getMediaAccessStatus()` on macOS to verify status before requesting; if `'denied'`, it opens the privacy screen directly.
-  - `desktop-audio`: Informs the user about platform limitations.
-- The `'granted'` status is saved in the Vault **only if the permission is real**.
-- If subsequent capture detects the thumbnail is empty, it **automatically revokes** the `'granted'` status and resets the badge to amber.
+### 2. Comportamiento Automático
+- El frontend inyecta automáticamente `moduleName` y `permissionSlug` (= `name` del campo) en el payload.
+- El backend **verifica el permiso real** antes de guardar:
+  - `screen`: Captura un thumbnail real; si está vacío, retorna error y abre los Ajustes del Sistema en macOS.
+  - `microphone`/`camera`: Usa `systemPreferences.getMediaAccessStatus()` en macOS para verificar el estado antes de pedir; en caso de `'denied'` abre directamente la pantalla de privacidad.
+  - `desktop-audio`: Informa al usuario sobre limitaciones de plataforma.
+- El estado `'granted'` se guarda en el Vault **solo si el permiso es real**.
+- Si la captura posterior detecta que el thumbnail está vacío, **revoca automáticamente** el estado `'granted'` y resetea el badge a ámbar.
 
-### 3. Read Permission from a Plugin
+### 3. Leer el permiso desde un Plugin
 
-Check if permission was granted by directly querying the `Vault` from your plugin:
+Verifica si el permiso fue otorgado consultando directamente el `Vault` desde tu plugin:
 
 ```typescript
 import { Vault } from '../../../../core/Security/Vault';
@@ -932,40 +1111,40 @@ import { Vault } from '../../../../core/Security/Vault';
 async apiMyAction() {
     const isGranted = Vault.getSecret(this.moduleName, 'capture-permission') === 'granted';
     if (!isGranted) {
-        return { success: false, consentRequired: true, message: 'Permission not granted' };
+        return { success: false, consentRequired: true, message: 'Permiso no otorgado' };
     }
-    // ... use the permission
+    // ... usar el permiso
 }
 ```
 
 > [!TIP]
-> The `McpManager` automatically shows the "System Permissions" section with status badges for all `button` type fields. Amber badges indicate action is required; green that permission is granted and verified.
+> El `McpManager` muestra automáticamente la sección "Permisos del Sistema" con badges de estado para todos los campos de tipo `button`. Los badges en ámbar indican que se requiere acción; los verdes que el permiso está otorgado y verificado.
 
 ---
 
-### 4. Using Permissions Within a Plugin
+### 4. Usar los Permisos Dentro de un Plugin
 
-Once the user has granted permission, here is the reference implementation for each type.
+Una vez que el usuario otorgó el permiso, aquí tienes la implementación de referencia para cada tipo.
 
-#### 📸 `screen` — Capture screen
+#### 📸 `screen` — Capturar la pantalla
 
-Use Electron's `desktopCapturer` directly from the **main** process. It does not require the renderer.
+Usa `desktopCapturer` de Electron directamente desde el proceso **main**. No requiere el renderer.
 
 ```typescript
-// In your Plugin (Main Process — Node.js / Electron)
+// En tu Plugin (Proceso Main — Node.js / Electron)
 import { desktopCapturer } from 'electron';
 import { Vault } from '../../../../core/Security/Vault';
 
-export default class MyPlugin extends PluginBase {
+export default class MiPlugin extends PluginBase {
 
     async apiCaptureScreen() {
-        // 1. Verify permission
+        // 1. Verificar permiso
         const isGranted = Vault.getSecret(this.moduleName, 'capture-permission') === 'granted';
         if (!isGranted) {
-            return { success: false, consentRequired: true, message: 'Capture permission not granted. Go to module settings.' };
+            return { success: false, consentRequired: true, message: 'Permiso de captura no otorgado. Ve a la configuración del módulo.' };
         }
 
-        // 2. Capture
+        // 2. Capturar
         const sources = await desktopCapturer.getSources({
             types: ['screen'],
             thumbnailSize: { width: 1920, height: 1080 },
@@ -975,16 +1154,16 @@ export default class MyPlugin extends PluginBase {
         const thumb = primary?.thumbnail;
 
         if (!thumb || thumb.isEmpty()) {
-            // Revoke if the OS no longer allows it
+            // Revocar si el OS ya no lo permite
             Vault.deleteSecret(this.moduleName, 'capture-permission');
-            return { success: false, message: 'The OS denied capture. Permission was revoked.' };
+            return { success: false, message: 'El SO denegó la captura. El permiso fue revocado.' };
         }
 
         const base64 = thumb.toPNG().toString('base64');
 
-        // 3. Return image — RuntimeLoop will inject it as multimodal part
+        // 3. Retornar imagen — el RuntimeLoop la inyectará como parte multimodal
         return [
-            { type: 'text', text: 'Screen capture taken successfully.' },
+            { type: 'text', text: 'Captura de pantalla tomada exitosamente.' },
             { type: 'image', image: base64, mimeType: 'image/png' },
         ];
     }
@@ -993,38 +1172,38 @@ export default class MyPlugin extends PluginBase {
 
 ---
 
-#### 🎙️ `microphone` — Record microphone audio
+#### 🎙️ `microphone` — Grabar audio del micrófono
 
-Microphone capture occurs in the **renderer process** (React/Web Audio API), not in main. Your plugin exposes a tool the agent calls; the frontend reacts and records.
+La captura de micrófono ocurre en el **proceso renderer** (React/Web Audio API), no en el main. Tu plugin expone una herramienta que el agente llama; el frontend reacciona y graba.
 
-**Step 1 — Plugin exposes tool (Main Process):**
+**Paso 1 — Plugin expone la herramienta (Main Process):**
 
 ```typescript
-// In your Plugin
-export default class MyPlugin extends PluginBase {
+// En tu Plugin
+export default class MiPlugin extends PluginBase {
 
     async apiStartMicCapture(payload: { durationMs?: number }) {
         const isGranted = Vault.getSecret(this.moduleName, 'microphone-access') === 'granted';
         if (!isGranted) {
-            return { success: false, consentRequired: true, message: 'Microphone permission not granted.' };
+            return { success: false, consentRequired: true, message: 'Permiso de micrófono no otorgado.' };
         }
 
-        // Emit event to renderer to start recording
-        // Renderer listens for 'plugin-mic-start' and returns audio via IPC
+        // Emitir evento al renderer para que inicie la grabación
+        // El renderer escucha 'plugin-mic-start' y retorna el audio vía IPC
         this.emitToRenderer('plugin-mic-start', {
             durationMs: payload.durationMs || 5000,
             sessionId: this.sessionId,
         });
 
-        return { success: true, message: 'Microphone recording started.' };
+        return { success: true, message: 'Grabación de micrófono iniciada.' };
     }
 }
 ```
 
-**Step 2 — Renderer captures and returns audio:**
+**Paso 2 — Renderer captura y devuelve el audio:**
 
 ```typescript
-// In your React component (Renderer)
+// En tu componente React (Renderer)
 api.on('plugin-mic-start', async ({ durationMs, sessionId }) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     const recorder = new MediaRecorder(stream);
@@ -1035,7 +1214,7 @@ api.on('plugin-mic-start', async ({ durationMs, sessionId }) => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         const buffer = await blob.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        // Send back to main process
+        // Enviar de regreso al main process
         api.customIpcCall('plugin-mic-result', { sessionId, base64, mimeType: 'audio/webm' });
         stream.getTracks().forEach(t => t.stop());
     };
@@ -1046,26 +1225,26 @@ api.on('plugin-mic-start', async ({ durationMs, sessionId }) => {
 ```
 
 > [!NOTE]
-> If you already have `useAudioEngine` active in the frontend, you can recycle it directly instead of creating a new `MediaRecorder`. See the **Integration with the Native Audio Engine** section of this guide.
+> Si ya tienes `useAudioEngine` activo en el frontend, puedes reciclarlo directamente en lugar de crear un nuevo `MediaRecorder`. Consulta la sección **Integración con el Audio Engine Nativo** de esta guía.
 
 ---
 
-#### 🔊 `desktop-audio` — Capture desktop audio (loopback)
+#### 🔊 `desktop-audio` — Capturar audio del escritorio (loopback)
 
-Only available on **Windows** (and Linux). Captures what is playing on the system in real-time.
+Solo disponible en **Windows** (y Linux). Captura lo que está sonando en el sistema en tiempo real.
 
-**Step 1 — Plugin emits signal (Main Process):**
+**Paso 1 — Plugin emite la señal (Main Process):**
 
 ```typescript
-export default class MyPlugin extends PluginBase {
+export default class MiPlugin extends PluginBase {
 
     async apiStartDesktopAudio(payload: { durationMs?: number }) {
         const isGranted = Vault.getSecret(this.moduleName, 'desktop-audio-access') === 'granted';
         if (!isGranted) {
-            return { success: false, consentRequired: true, message: 'Desktop audio permission not granted.' };
+            return { success: false, consentRequired: true, message: 'Permiso de audio del escritorio no otorgado.' };
         }
         if (process.platform === 'darwin') {
-            return { success: false, message: 'macOS does not support native desktop audio capture. Install BlackHole.' };
+            return { success: false, message: 'macOS no soporta captura de audio del escritorio nativamente. Instala BlackHole.' };
         }
 
         this.emitToRenderer('plugin-desktop-audio-start', {
@@ -1073,17 +1252,17 @@ export default class MyPlugin extends PluginBase {
             sessionId: this.sessionId,
         });
 
-        return { success: true, message: 'Desktop audio capture started.' };
+        return { success: true, message: 'Captura de audio del escritorio iniciada.' };
     }
 }
 ```
 
-**Step 2 — Renderer captures with WASAPI loopback:**
+**Paso 2 — Renderer captura con WASAPI loopback:**
 
 ```typescript
-// In the renderer (React) — only works on Windows/Linux
+// En el renderer (React) — solo funciona en Windows/Linux
 api.on('plugin-desktop-audio-start', async ({ durationMs, sessionId }) => {
-    // Get desktop sources with audio enabled
+    // Obtener fuentes de escritorio con audio habilitado
     const sources = await (window as any).electronAPI.customIpcCall(
         'desktop-capturer-get-sources', { types: ['screen'], fetchWindowIcons: false }
     );
@@ -1092,7 +1271,7 @@ api.on('plugin-desktop-audio-start', async ({ durationMs, sessionId }) => {
         audio: {
             mandatory: {
                 chromeMediaSource: 'desktop',
-                chromeMediaSourceId: sources[0]?.id,  // First screen
+                chromeMediaSourceId: sources[0]?.id,  // Primera pantalla
             }
         } as any,
         video: false,
@@ -1116,7 +1295,494 @@ api.on('plugin-desktop-audio-start', async ({ durationMs, sessionId }) => {
 ```
 
 > [!IMPORTANT]
-> For `getUserMedia` with `chromeMediaSource: 'desktop'` to work in the Electron renderer, the window must have `contextIsolation: false` enabled or the preload must expose the capture source IDs. In Urano, this is managed via the `desktop-capturer-get-sources` IPC.
+> Para que `getUserMedia` con `chromeMediaSource: 'desktop'` funcione en el renderer de Electron, la ventana debe tener habilitado `contextIsolation: false` o el preload debe exponer los IDs de las fuentes de captura. En Urano, esto se gestiona mediante el IPC `desktop-capturer-get-sources`.
 
 > [!WARNING]
-> On **macOS**, this code block will fail silently because the system does not expose system audio via `getUserMedia`. Verify with `process.platform === 'darwin'` before executing.
+> En **macOS**, este bloque de código fallará silenciosamente porque el sistema no expone el audio del sistema a través de `getUserMedia`. Verifica con `process.platform === 'darwin'` antes de ejecutar.
+
+---
+
+## 10. Control de Hardware y Sistema Operativo (OS-Level)
+
+A diferencia de los entornos en la nube (como ChatGPT), **los plugins de Urano Desktop se ejecutan localmente en la máquina del usuario bajo Node.js**. Esto significa que tus plugins tienen acceso directo al Sistema Operativo, hardware y periféricos, permitiéndote crear agentes verdaderamente autónomos en el mundo real.
+
+### 🔌 Acceso Nativo a Node.js
+
+No estás limitado a hacer peticiones web (HTTP). Puedes importar cualquier módulo nativo de Node.js o instalar dependencias pesadas en tu plugin:
+
+*   **`child_process`**: Para ejecutar scripts de Python, Bash o PowerShell.
+*   **`robotjs` / `@nut-tree/nut-js`**: Para simular teclado y ratón y controlar aplicaciones de terceros.
+*   **`serialport`**: Para conectar Urano con hardware externo como Arduino, Raspberry Pi o domótica.
+
+### Ejemplo: Plugin de Automatización de Escritorio (Macro)
+Este ejemplo muestra cómo un Agente puede tomar control físico del teclado y ratón del usuario para realizar tareas aburridas o interactuar con videojuegos.
+
+1. Abre la terminal en tu carpeta de plugin e instala la librería:
+   ```bash
+   npm init -y
+   npm install @nut-tree/nut-js
+   ```
+
+2. Implementa la acción en tu clase de Plugin:
+
+```typescript
+import { keyboard, mouse, Key, Point } from "@nut-tree/nut-js";
+
+export class DesktopMacroPlugin {
+    async executeAction(action: string, payload: any) {
+        if (action === 'press_shortcut') {
+            // Ejemplo: El agente decide presionar Ctrl+S para guardar el trabajo del usuario
+            await keyboard.pressKey(Key.LeftControl, Key.S);
+            await keyboard.releaseKey(Key.LeftControl, Key.S);
+            return "Atajo de teclado ejecutado con éxito.";
+        }
+        
+        if (action === 'move_mouse') {
+            // El agente mueve el ratón físicamente a una coordenada
+            await mouse.setPosition(new Point(payload.x, payload.y));
+            return `Ratón movido a las coordenadas ${payload.x}, ${payload.y}.`;
+        }
+    }
+}
+```
+
+### ⚠️ Reglas de Seguridad para Control de OS
+
+Dado que el control del sistema operativo es crítico y podría ser peligroso si el Agente comete un error, **Urano Desktop impone reglas estrictas**:
+
+1.  **Aprobación Obligatoria (`requiresApproval: true`)**: Cualquier herramienta que ejecute comandos destructivos o macros impredecibles **DEBE** tener esta bandera activada en su schema (`config.ts`). El RuntimeLoop de Urano pausará el agente y le mostrará un botón amarillo al usuario pidiendo permiso explícito antes de ejecutar el comando. (Ver la sección "Protocolo de Aprobación Interactiva" más arriba).
+2.  **Advertencia del Escáner Estático**: Cuando el usuario instale tu plugin ZIP, el Escáner de Seguridad de Urano detectará que usas librerías nativas como `child_process` o `serialport` y le mostrará un icono de advertencia 🛡️ en el Marketplace: *"Este plugin tiene acceso total al Sistema Operativo"*.
+
+### 🌉 Acceso a la API Core Avanzada
+Si desarrollaste el plugin usando la técnica de inyección de alias explicada anteriormente, tienes acceso directo a los subsistemas del motor local de Urano. Puedes usar el inyector dinámico para pedirle al Core que haga cosas nativas del SO por ti, sin tener que reprogramarlas:
+
+```typescript
+// En tu plugin, pidiendo al Core de Urano que lance una notificación nativa de Windows/macOS
+await this.config._callPlugin('Core', 'NotificationManager', 'show', {
+    title: "Agente de Hardware",
+    body: "He terminado de imprimir la pieza 3D. ¿Qué hacemos ahora?"
+});
+```
+
+---
+
+## 7. 🎨 API Nativa de Renderizado UI y Badges
+
+> **Novedad v2.0** — Esta API permite que cualquier plugin externo lance interfaces visuales ricas directamente en el chat, sin código de frontend.
+
+### ¿Qué es PluginCore?
+
+`PluginCore` es un módulo nativo de Urano (disponible como `@core/PluginCore`) que ofrece helpers de alto nivel para:
+
+| Método | Descripción |
+|---|---|
+| `PluginCore.launchUI()` | Lanza una pestaña visual (JsonLiveRenderer) en MultiverseTabs |
+| `PluginCore.addBadge()` | Inyecta un badge de acceso rápido **encima del input del chat** |
+| `PluginCore.removeBadge()` | Elimina un badge por su ID |
+| `PluginCore.updateUI()` | Actualiza en tiempo real una pestaña ya abierta |
+| `PluginCore.focusTab()` | Trae al frente una pestaña existente |
+
+### Configuración del empaquetado
+
+Como todos los módulos `@core/*`, debes excluirlo del bundle al empaquetar:
+
+```bash
+# esbuild — marca @core como externo
+esbuild src/index.ts --bundle --external:@core/* --outfile=dist/index.js
+```
+
+### Ejemplo completo: Lanzar un Dashboard + Badge
+
+```typescript
+import { PluginBase } from '@core/PluginBase';
+import { PluginCore } from '@core/PluginCore';
+
+export class MyDashboardPlugin extends PluginBase {
+
+    /**
+     * Herramienta MCP: el agente llama a esto cuando el usuario pide ver su dashboard.
+     * El agente solo necesita saber el sessionId (viene automático como _sessionId).
+     */
+    async apiLaunchdashboard(params: { label?: string; _sessionId?: string }): Promise<any> {
+        const sessionId = params._sessionId || '';
+        const label = params.label || 'Mi Dashboard';
+
+        // 1. Construir la especificación UI (JsonLiveRenderer)
+        const uiSpec = {
+            root: {
+                type: 'Column',
+                props: { padding: 24, gap: 16 },
+                children: [
+                    {
+                        type: 'Hero',
+                        props: {
+                            title: `📊 ${label}`,
+                            subtitle: 'Panel de control de tu plugin',
+                            badge: 'LIVE'
+                        }
+                    },
+                    {
+                        type: 'Grid',
+                        props: { columns: 3, gap: 16 },
+                        children: [
+                            {
+                                type: 'Stat',
+                                props: { label: 'Total', value: '42', color: 'info', icon: '📈' }
+                            },
+                            {
+                                type: 'Stat',
+                                props: { label: 'Activos', value: '8', color: 'success', icon: '✅' }
+                            },
+                            {
+                                type: 'Stat',
+                                props: { label: 'Errores', value: '0', color: 'error', icon: '⚠️' }
+                            }
+                        ]
+                    },
+                    {
+                        type: 'Table',
+                        props: {
+                            title: 'Últimos eventos',
+                            columns: ['Evento', 'Fecha', 'Estado'],
+                            rows: [
+                                { Evento: 'Sync completado', Fecha: '2025-05-17', Estado: 'OK' },
+                                { Evento: 'Webhook recibido', Fecha: '2025-05-16', Estado: 'OK' }
+                            ]
+                        }
+                    }
+                ]
+            }
+        };
+
+        // 2. Lanzar la UI (crea una pestaña nueva o hace focus en una existente)
+        const result = await PluginCore.launchUI({
+            sessionId,
+            label,
+            uiSpec,
+            systemPrompt: `Eres el asistente del panel "${label}". Ayuda al usuario con sus datos.`,
+            badgeIcon: 'LayoutDashboard',
+            badgeColor: 'info'
+        });
+
+        if (result.success) {
+            return {
+                success: true,
+                tabId: result.tabId,
+                message: result.isNew
+                    ? `Panel "${label}" lanzado correctamente.`
+                    : `Panel "${label}" ya estaba abierto — traído al frente.`
+            };
+        }
+
+        return { success: false, message: 'Error al lanzar el panel.' };
+    }
+}
+```
+
+### Flujo visual resultante
+
+Cuando el agente llama a `apiLaunchdashboard`:
+
+1. Aparece una nueva pestaña `🧩 Mi Dashboard` en el área MultiverseTabs.
+2. **Inmediatamente** aparece un badge `📊 Mi Dashboard` sobre el input del chat.
+3. Al hacer click en el badge, se lleva al usuario a la pestaña.
+4. Si el usuario cierra la pestaña y vuelve a pedirla, el badge la reabre automáticamente.
+
+### Actualización en tiempo real
+
+Para modificar la UI sin destruirla (por ejemplo, actualizar una tabla de datos):
+
+```typescript
+async apiUpdatedashboard(params: { tabId: string; newData: any[] }): Promise<any> {
+    await PluginCore.updateUI({
+        tabId: params.tabId,
+        patch: {
+            root: {
+                props: {
+                    // Actualizar solo los datos de la tabla
+                    rows: params.newData
+                }
+            }
+        },
+        purpose: 'Actualización de datos'
+    });
+
+    return { success: true, message: 'Panel actualizado.' };
+}
+```
+
+### Catálogo de Widgets (JsonLiveRenderer)
+
+La especificación `uiSpec` soporta más de 40 widgets nativos:
+
+#### Layout
+| Widget | Descripción | Props clave |
+|---|---|---|
+| `Column` | Flex vertical | `gap`, `padding`, `alignItems` |
+| `Row` | Flex horizontal | `gap`, `justifyContent` |
+| `Grid` | CSS Grid | `columns`, `gap` |
+| `Box` | Contenedor libre | `backgroundColor`, `borderRadius` |
+| `GlassPanel` | Panel glassmorphism | `backdropBlur`, `padding` |
+| `Stack` | Posicionamiento absoluto | — |
+| `Center` | Centrado ambos ejes | — |
+| `ScrollView` | Scroll interno | `horizontal` |
+
+#### Datos y contenido
+| Widget | Descripción | Props clave |
+|---|---|---|
+| `Table` | Tabla con paginación | `columns`, `rows`, `pageSize` |
+| `Chart` | ECharts (bar, line, pie) | `chartType`, `series`, `xAxis` |
+| `Stat` | Métrica con icono | `label`, `value`, `color`, `delta` |
+| `MetricGroup` | Grupo de métricas | `items[]` |
+| `Markdown` | Texto con formato | `content` |
+| `Code` | Bloque de código | `content`, `language` |
+
+#### Interactividad
+| Widget | Descripción | Props clave |
+|---|---|---|
+| `Button` | Botón con acción IPC | `label`, `variant`, `onClickAction` |
+| `Form` | Formulario con inputs | `fields[]`, `submitRoute` |
+| `Chip` | Chip clickeable | `label`, `color`, `onClickAction` |
+
+#### Visual
+| Widget | Descripción | Props clave |
+|---|---|---|
+| `Hero` | Banner superior | `title`, `subtitle`, `badge`, `imageUrl` |
+| `Card` | Tarjeta contenedor | `title`, `content` |
+| `Badge` | Etiqueta | `label`, `level` |
+| `Avatar` | Imagen con iniciales | `src`, `name`, `size` |
+| `Skeleton` | Cargador | `lines` |
+| `Spinner` | Spinner animado | `size`, `color` |
+| `Map` | Mapa TomTom (UranoMaps) | `center`, `zoom`, `markers` |
+
+> 💡 **Tip**: Para ver todos los widgets con ejemplos interactivos, pide al agente de Urano: `"muéstrame el catálogo de widgets de JsonLiveRenderer"`.
+
+### Seguridad y permisos
+
+`PluginCore` usa los mismos canales IPC que los plugins nativos. No requiere permisos especiales adicionales. Los badges se limpian automáticamente cuando la sesión termina.
+
+### Declarar la herramienta en `config.ts`
+
+```typescript
+export const MyDashboardConfig = {
+    name: "MyDashboard",
+    // ...
+    pluginSchemas: {
+        Dashboard: {
+            actions: {
+                launchdashboard: {
+                    label: 'Abrir Dashboard',
+                    description: 'Lanza el panel visual del plugin con estadísticas en tiempo real.',
+                    fields: [
+                        {
+                            name: 'label',
+                            label: 'Nombre del panel',
+                            type: 'text',
+                            required: false,
+                            helpText: 'Nombre personalizado para la pestaña. Por defecto: "Mi Dashboard".'
+                        }
+                    ]
+                }
+            }
+        }
+    }
+};
+```
+
+---
+
+### Uso de Marcadores Multimodales Inteligentes (`[last_image]`)
+
+Al construir plugins para Urano (tanto nativos como empaquetados externos), es común querer procesar archivos de imágenes enviados en el chat. En lugar de obligar al agente a extraer, descargar, o codificar las imágenes en base64 para pasarlas como argumentos pesados (lo cual degrada el rendimiento de la GPU/CPU y agota el límite de tokens), el core de Urano soporta **Marcadores Multimodales Inteligentes**.
+
+#### ¿Cómo funcionan?
+Si tu herramienta espera recibir un archivo de imagen en un parámetro (por ejemplo, `photo` o `imagePath`), puedes indicarle al agente en la descripción del parámetro que soporta el marcador `[last_image]`, `[last_photo]`, o `@last_image`.
+
+Cuando el agente coloca uno de estos marcadores en la llamada, `McpTool.ts` intercepta la solicitud antes de que llegue a tu plugin:
+1. Extrae la última imagen del historial de la sesión activa de forma asíncrona.
+2. Crea un archivo temporal físico en el disco (`~/.urano/temp/last_image_{timestamp}_{random}.png`).
+3. Sustituye dinámicamente el marcador por la **ruta absoluta de este archivo temporal**.
+
+#### Ejemplo de Declaración en `config.ts`
+
+```typescript
+export const ImageProcessorConfig = {
+    name: "ImageProcessor",
+    settings: [],
+    pluginSchemas: {
+        Processor: {
+            actions: {
+                process_image: {
+                    label: 'Procesar Imagen',
+                    description: 'Analiza o transforma una imagen local.',
+                    fields: [
+                        {
+                            name: 'photo',
+                            label: 'Ruta de la imagen',
+                            type: 'text',
+                            required: true,
+                            helpText: 'Ruta local absoluta de la imagen. Puedes pasar "[last_image]" para procesar la última foto del chat.'
+                        }
+                    ]
+                }
+            }
+        }
+    }
+};
+```
+
+#### Ejemplo de Implementación en tu Plugin (`ProcessorPlugin.ts`)
+
+Dado que el motor reemplaza el marcador con una ruta de archivo local absoluta antes de invocar la acción, tu código de plugin puede consumirla directamente usando el módulo estándar `fs` de NodeJS sin código adicional:
+
+```typescript
+import { PluginBase } from '@core/PluginBase';
+import fs from 'fs';
+import path from 'path';
+
+export class ProcessorPlugin extends PluginBase {
+
+    async apiProcess_image(data: { photo: string, _sessionId?: string }): Promise<any> {
+        const imagePath = data.photo;
+
+        // Comprobación estándar de archivo local (el core ya resolvió [last_image] a una ruta real)
+        if (!fs.existsSync(imagePath)) {
+            throw new Error(`No se encontró el archivo de imagen en la ruta: ${imagePath}`);
+        }
+
+        const fileStats = fs.statSync(imagePath);
+        const fileName = path.basename(imagePath);
+
+        // Procesar la imagen (ej: OCR, subida, compresión, etc.)
+        // ...
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Imagen procesada con éxito: ${fileName} (${(fileStats.size / 1024).toFixed(1)} KB)`
+                }
+            ]
+        };
+    }
+}
+
+---
+
+## 8. Módulos Híbridos: Combinando MCP Tools y Engine Plugins
+
+Una técnica de diseño sumamente potente y avanzada en Urano es la creación de **Módulos Híbridos**. Un solo paquete MCP puede actuar simultáneamente como un plugin MCP normal (exponiendo herramientas declarativas al LLM) y como un **Engine Plugin (Session Middleware)** (que intercepta silenciosamente el ciclo de vida de la sesión en segundo plano).
+
+Esto permite, por ejemplo, que un módulo de `Gmail` o `Slack` provea herramientas al agente (ej: `gmail_send_email`) y, al mismo tiempo, maneje de manera desatendida badges visuales en la interfaz de chat (como `✉️ Correo Enviado`) o modifique el prompt de sistema dinámicamente según las acciones que realice la herramienta.
+
+### Configuración Híbrida en `config.ts`
+
+Para declarar un módulo híbrido, simplemente incluye tanto el objeto `pluginSchemas` como los campos de `enginePlugin` y `engineHooks` en tu manifiesto:
+
+```typescript
+export const GmailConfig = {
+    name: "GmailIntegration",
+    description: "Conexión con Gmail y middleware de auditoría de correos.",
+    icon: "Mail",
+    category: "Productividad",
+
+    // 1. Declaración de Engine Plugin (Middleware de Sesión)
+    enginePlugin: true,
+    engineHooks: ['onSessionStart', 'preMessageProcess'],
+
+    // 2. Declaración de MCP normal (Herramientas expuestas al LLM)
+    pluginSchemas: {
+        Inbox: {
+            actions: {
+                send_email: {
+                    label: 'Enviar Correo',
+                    description: 'Envía un email usando Gmail. Soporta adjuntos.',
+                    fields: [
+                        { name: 'to', label: 'Destinatario', type: 'text', required: true },
+                        { name: 'subject', label: 'Asunto', type: 'text', required: true },
+                        { name: 'body', label: 'Mensaje', type: 'textarea', required: true }
+                    ]
+                }
+            }
+        }
+    }
+};
+```
+
+### Estructura de Archivos del Módulo Híbrido
+
+```text
+📁 GmailIntegration/
+├── 📄 config.ts
+└── 📁 Plugins/
+    ├── 📁 Inbox/
+    │   └── 📄 InboxPlugin.ts                  <-- Resuelve la herramienta "send_email"
+    └── 📁 Engine/
+        └── 📄 GmailIntegrationEnginePlugin.ts <-- Middleware en segundo plano
+```
+
+### Comunicación entre MCP Tools y el Engine (Uso de Session Metadata)
+
+Dado que las herramientas y el Engine Plugin se ejecutan para la misma sesión en el mismo proceso de Node/Bun, pueden comunicarse compartiendo información en la metadata de la sesión de forma completamente segura:
+
+1. **La herramienta MCP guarda un estado temporal en la sesión**:
+   En la acción `apiSend_email` de tu clase `InboxPlugin.ts`, puedes acceder al `_sessionId` (inyectado automáticamente en los datos de la llamada) y guardar valores en la sesión activa:
+   ```typescript
+   import { SessionManager } from '@core/runtime/SessionManager';
+
+   export class InboxPlugin {
+       async apiSend_email(data: any): Promise<any> {
+           // 1. Enviar el correo electrónico mediante APIs...
+           const sendResult = await gmailService.send(data);
+
+           // 2. Almacenar información de la transacción en la sesión activa
+           if (data._sessionId) {
+               const session = SessionManager.getSession(data._sessionId);
+               if (session) {
+                   session.metadata['_engine_GmailIntegration_lastSubject'] = data.subject;
+                   session.metadata['_engine_GmailIntegration_needsUpdate'] = true;
+               }
+           }
+
+           return { status: 'success', id: sendResult.id };
+       }
+   }
+   ```
+
+2. **El Engine Plugin lee la metadata y actúa**:
+   En el gancho `preMessageProcess` de `GmailIntegrationEnginePlugin.ts`, consumes el estado guardado y aplicas cambios en la UI o inyectas instrucciones en caliente:
+   ```typescript
+   import { EnginePluginBase } from '@core/EnginePluginBase';
+   import type { SessionContext } from '@core/runtime/SessionContext';
+
+   export class GmailIntegrationEnginePlugin extends EnginePluginBase {
+       async preMessageProcess(ctx: SessionContext, message: any): Promise<any> {
+           const lastSubject = ctx.getPluginData('lastSubject');
+           const needsUpdate = ctx.getPluginData('needsUpdate');
+
+           if (needsUpdate && lastSubject) {
+               // Inyectamos un badge dinámico en la cabecera del chat en la UI
+               ctx.addBadge({
+                   id: 'gmail-sent',
+                   label: `✉️ Enviado: "${lastSubject}"`,
+                   color: 'success'
+               });
+
+               // Inyectamos instrucciones contextuales en caliente en el system prompt
+               ctx.appendCustomInstructions(
+                   `[SISTEMA]: Acabas de enviar con éxito un correo con asunto "${lastSubject}". Confírmaselo amablemente al usuario si te lo pregunta.`
+               );
+
+               // Reseteamos el flag de control
+               ctx.setMetadata('needsUpdate', false);
+           }
+
+           return { status: 'continue' };
+       }
+   }
+   ```
+
+```
+
+Esta solución garantiza compatibilidad transparente tanto para el entorno de Escritorio (Electron) como en la Nube (Docker/Hono), ya que las rutas temporales se adaptan dinámicamente al sistema de archivos local (`os.homedir()`).
+```
