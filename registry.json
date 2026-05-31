@@ -88,6 +88,23 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/UranoSafetyFirewall/main/urano-safety-firewall.zip",
             "verified": true
+        },
+        {
+            "id": "calendly-plugin",
+            "name": "Calendly",
+            "origin": "https://github.com/uranotools/calendly-plugin",
+            "author": "Urano Tools",
+            "description": "El plugin definitivo de productividad para agendar, gestionar y automatizar reuniones en Calendly de manera 100% conversacional.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Productividad",
+            "icon": "Calendar",
+            "tags": [
+                "calendly",
+                "calendar"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/calendly-plugin/main/calendly-aiplugin.zip",
+            "verified": true
         }
     ]
 }
