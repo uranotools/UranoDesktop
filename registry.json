@@ -105,6 +105,23 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/calendly-plugin/main/calendly-aiplugin.zip",
             "verified": true
+        },
+        {
+            "id": "LocalNetwork",
+            "name": "LocalNetwork",
+            "origin": "https://github.com/uranotools/LocalNetwork",
+            "author": "Urano Tools",
+            "description": "Dale a tu agente inteligencia total sobre tu red local. Descubre dispositivos, verifica conectividad, accede a APIs locales y enciende equipos remotamente — todo desde una conversación.",
+            "version": "1.0.0",
+            "inCloud": false,
+            "category": "Redes",
+            "icon": "Network",
+            "tags": [
+                "network",
+                "local"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/LocalNetwork/main/urano-localnetwork.zip",
+            "verified": true
         }
     ]
 }
