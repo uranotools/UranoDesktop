@@ -122,6 +122,23 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/LocalNetwork/main/urano-localnetwork.zip",
             "verified": true
+        },
+        {
+            "id": "AiErrorMitigator",
+            "name": "AiErrorMitigator",
+            "origin": "https://github.com/uranotools/AiErrorMitigator",
+            "author": "Urano Tools",
+            "description": "Mitigador de errores de IA y auditor de consistencia. Detecta bucles, respuestas vacías (No output generated) y repara el prompt/historial de forma automática o reportándolo.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Seguridad",
+            "icon": "Urano",
+            "tags": [
+                "errores",
+                "Mitigador"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/AiErrorMitigator/main/urano-aierrormitigator.zip",
+            "verified": true
         }
     ]
 }
