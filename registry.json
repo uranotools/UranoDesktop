@@ -139,6 +139,23 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/AiErrorMitigator/main/urano-aierrormitigator.zip",
             "verified": true
+        },
+        {
+            "id": "uranohubspot",
+            "name": "Urano Hubspot",
+            "origin": "https://github.com/uranotools/uranohubspot",
+            "author": "Urano Tools",
+            "description": "Manejo de Hubspot integrado en la plataforma de Urano integrado con canales de redes sociales y agentes autonomos en UranoAI.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Productividad",
+            "icon": "Urano",
+            "tags": [
+                "errores",
+                "Productividad"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/uranohubspot/main/uranohubspot.zip",
+            "verified": true
         }
     ]
 }
