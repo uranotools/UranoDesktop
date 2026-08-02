@@ -156,6 +156,24 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/uranohubspot/main/uranohubspot.zip",
             "verified": true
+        },
+        {
+            "id": "science-climate",
+            "name": "Urano Climate - Lab-grade",
+            "origin": "https://github.com/uranotools/science-climate",
+            "author": "Urano Science",
+            "description": "Explora CSV y Excel climáticos en el chat: bind por sesión, anomalías, comparaciones, export y dashboards — con evidencia reproducible (analysisId + hash), sin volcar el archivo al modelo.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Ciencia e Investigación",
+            "icon": "CloudSun",
+            "tags": [
+                "Science",
+                "Climate",
+                "Investigation"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/science-climate/main/urano-climate.zip",
+            "verified": true
         }
     ]
 }
