@@ -192,6 +192,23 @@
             ],
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/urano-charts/main/urano-charts.zip",
             "verified": true
+        },
+        {
+            "id": "urano-pueblo",
+            "name": "Urano Pueblo",
+            "origin": "https://github.com/uranotools/urano-pueblo",
+            "author": "Urano Games",
+            "description": "Aldea protégé. Enseñás una tarea. El aldeano la repite solo. Si se traba, te pregunta en el mapa. Vos nunca dejás de ser un cuerpo en el pueblo.",
+            "version": "1.0.0",
+            "inCloud": false,
+            "category": "Games",
+            "icon": "CloudSun",
+            "tags": [
+                "games",
+                "arcade"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/urano-pueblo/main/urano-pueblo.zip",
+            "verified": true
         }
     ]
 }
