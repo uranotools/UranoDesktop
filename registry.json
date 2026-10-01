@@ -210,5 +210,24 @@
             "downloadUrl": "https://raw.githubusercontent.com/uranotools/urano-pueblo/main/urano-pueblo.zip",
             "verified": true
         }
+        {
+            "id": "urano-research-harness",
+            "name": "Urano Research Harness",
+            "origin": "https://github.com/uranotools/urano-research-harness",
+            "author": "Urano Tools",
+            "description": "El motor de investigación de Urano. Investiga, analiza y genera informes con evidencia reproducible.",
+            "version": "1.0.0",
+            "inCloud": true,
+            "category": "Ciencia e Investigación",
+            "icon": "Urano",
+            "tags": [
+                "Ciencia",
+                "Investigación",
+                "Research",
+                "Investigation"
+            ],
+            "downloadUrl": "https://raw.githubusercontent.com/uranotools/urano-research-harness/main/urano-research-harness.zip",
+            "verified": true
+        }
     ]
 }
